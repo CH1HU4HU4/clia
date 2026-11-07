@@ -283,7 +283,7 @@ Rules:
 - Run filtering and search on the server. If the API has no option, say so in help before filtering on the client.
 - Sort order is stable. When the API does not define one, sort by `created_at` descending and state it.
 - `--all` has a cap of 10,000 items. A read that hits the cap exits 0 with `truncated: true`, `has_more: true`, and a stderr warning with the cursor. Incomplete data is never presented as complete, and a read never fails because it was large.
-- `--yes` belongs to destructive writes. Read commands do not accept it and never require it.
+- `--yes` belongs to destructive writes. Read commands accept and ignore it, and never require it.
 
 ### 4.6 Mutating data
 
@@ -326,7 +326,7 @@ Single resource:
 List:
 
 ```json
-{"data": [{"id": "prj_123"}], "has_more": true, "next_cursor": "cur_456"}
+{"data": [{"id": "prj_123"}], "has_more": true, "next_cursor": "cur_456", "truncated": false}
 ```
 
 Action:
