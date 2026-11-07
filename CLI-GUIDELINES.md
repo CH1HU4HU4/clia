@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | Status | Draft |
-| Version | 0.1 |
+| Version | 0.2 |
 | Applies to | Any SaaS product exposing an HTTP API |
 | Normative language | MUST, SHOULD, MAY (RFC 2119 style) |
 
@@ -70,6 +70,34 @@ Rules:
 
 When the UI uses an endpoint the product does not document, you have three options. Use a documented endpoint, leave the capability out with a note, or ask the product team to expose it. Do not scrape the UI and do not call private endpoints.
 
+### 2.4 Blocked conditions
+
+Stop and report instead of guessing when any of these is true:
+
+- A primary job needs a capability with no documented API, and no documented alternative covers it.
+- Auth cannot be completed without a browser and the product has no token or device flow.
+- The API does not document what a destructive call removes or cascades to.
+- A resource can be identified by name, the API allows duplicates, and no ID path exists.
+- Rate limits or quotas make a bulk command unsafe without a product decision.
+
+A blocked report names the missing input, the commands that are safe to build now, and the smallest decision needed to unblock. Building a wrong command costs more than leaving a row open.
+
+### 2.5 Definition of ready
+
+Answer these in `CLI.md` before writing command code:
+
+1. Tool name and binary name, checked against the package registry and `PATH`.
+2. Repo language, package manager, and build command.
+3. API style, base URLs, and API version header.
+4. Auth method with a non-TTY path.
+5. Surface map at 90% coverage, gaps listed.
+6. Command tree that fits on one screen.
+7. Output convention: key case, timestamps, IDs, money units.
+8. Safety class for every write.
+9. The first vertical slice, named.
+
+A missing answer is a blocked condition, not an invitation to invent.
+
 ## 3. Command grammar and naming
 
 ### 3.1 Shape
@@ -130,6 +158,16 @@ A user who knows one resource should guess the commands for another. Run this te
 
 Avoid abbreviations that collide. Disable prefix matching on command names. If two commands start with the same letters, typing the shorter one is an error, not a guess.
 
+### 3.6 Resource resolution
+
+Commands take an ID when the API has one. Accept a slug or name only when it is unique and documented.
+
+- Resolve a name with one lookup call. Zero matches exits 5. Multiple matches exits 6 with the candidate IDs and a hint to retry with `--id`.
+- Never act on the first match when several exist.
+- Treat IDs as opaque strings. Do not parse a prefix to decide the resource type.
+- `--project` and `--org` override context for one command. They do not persist.
+- When no project or org is configured and several are available, exit 2 with the choices. Never pick a default silently.
+
 ## 4. Arguments and flags
 
 ### 4.1 Positionals and flags
@@ -165,6 +203,9 @@ Data commands accept these. `completion` and `version` print text by definition 
 | `--debug` | Verbose logs to stderr, redacted |
 | `--timeout <seconds>` | Request timeout |
 | `--profile <name>` | Select a config profile |
+| `--org <id>` | Override the org for this command |
+| `--project <id>` | Override the project for this command |
+| `--api-version <version>` | Override the pinned API version |
 | `--help`, `-h` | Help for the current command |
 | `--version` | Version, root command only |
 
@@ -176,6 +217,37 @@ Data commands accept these. `completion` and `version` print text by definition 
 - `--file <path>` reads a JSON body from a file. `--file -` reads stdin.
 - Large payloads use a file, not a shell argument.
 - Never read stdin implicitly. A command that expects input says so in help.
+
+### 4.5 List flags
+
+Every `list` command accepts the same core set:
+
+| Flag | Purpose | Notes |
+|---|---|---|
+| `--limit <n>` | Page size | Default 50, max 200 |
+| `--cursor <cursor>` | Continue after a cursor | Opaque string |
+| `--all` | Fetch every page | Safety cap, requires `--yes` off a TTY for large sets |
+| `--sort <field>` | Sort order | Prefix `-` for descending |
+| `--filter key=value` | Exact match | Repeatable |
+| `--search <text>` | Server-side text search | Only when the API supports it |
+| `--since <time>` / `--until <time>` | Time bounds | RFC 3339 or relative such as `24h` |
+| `--fields <list>` | Project top-level keys | Comma-separated |
+| `--full` | Full objects instead of summaries | Heavier response |
+
+Rules:
+
+- Add typed flags for the two or three filters users need most: `--status`, `--env`, `--owner`. Keep `--filter` for the long tail.
+- Run filtering and search on the server. If the API has no option, say so in help before filtering on the client.
+- Sort order is stable. When the API does not define one, sort by `created_at` descending and state it.
+- `--all` has a cap, default 10,000 items, and exits 9 when it hits the cap.
+
+### 4.6 Mutating data
+
+- `create` uses typed flags for common fields and `--file` for nested objects.
+- `update` uses `--set key=value` for scalar changes, repeatable, and `--unset key` to clear a field. Typed flags are sugar over the same patch.
+- `--data '<json>'` is allowed for small inline bodies. `--file` wins when both are passed, and the tool says so.
+- Never require a full object for a partial update.
+- Send only the fields the user passed. A read-modify-write is allowed only when the API documents that it requires one.
 
 ## 5. Output
 
@@ -222,17 +294,18 @@ Action:
 Error, on stderr:
 
 ```json
-{"error": {"code": "not_found", "message": "Project prj_123 not found", "hint": "Run acme project list", "status": 404, "request_id": "req_abc"}}
+{"error": {"code": "not_found", "message": "Project prj_123 not found", "hint": "Run acme project list", "status": 404, "request_id": "req_abc", "retryable": false}}
 ```
 
 JSON rules:
 
-- Keys are `snake_case` and match the product API. Pick one convention per tool and keep it.
+- Keys use one convention per tool, inherited from the product API and documented in `CLI.md`. Do not mix conventions between commands.
 - Timestamps are RFC 3339 in UTC with `Z`.
 - Money is an integer in minor units, and the key names the unit: `amount_cents`.
 - IDs are strings, even when they look numeric.
 - Arrays are always arrays. Empty is `[]`, never `null`.
-- Keys are always present. Missing values are `null`.
+- Keys are always present unless `--fields` removed them. Missing values are `null`.
+- Errors include `retryable` and, on a 429, `retry_after` in seconds.
 - No ANSI, no HTML, no trailing prose, no BOM.
 - Field names, types, and shapes do not change in a minor version.
 
@@ -256,6 +329,38 @@ JSON rules:
 
 - `--fields id,name,status` limits the top-level keys in JSON output. The shape stays an object, and unknown fields are an error, not silently ignored.
 - `--quiet` on a list prints one ID per line, suitable for `xargs`.
+
+### 5.7 Result shapes by command
+
+Keep the shape of a result tied to the verb, not to the endpoint:
+
+| Verb | JSON result |
+|---|---|
+| `list` | `{"data": [...], "has_more": false, "next_cursor": null}` |
+| `get` | The full resource object |
+| `create` | The created resource object |
+| `update` | The updated resource object |
+| `delete` | `{"ok": true, "id": "prj_123"}` |
+| Action | `{"ok": true, "id": "dep_123", "status": "queued"}` |
+| Job | `{"id": "job_123", "status": "running", ...}` |
+
+Rules:
+
+- `list` returns summary fields: identity, name, status, owner, timestamps. It omits bodies, logs, and nested collections. `get` returns the full object. `--full` opts a list into full objects.
+- `create` and `update` return the object as the server sees it, including server-generated fields.
+- `delete` returns the ID and `ok`. It does not echo the deleted object.
+- A job result includes `status` and, when known, `terminal` as a boolean. Status values come from a documented enum.
+
+### 5.8 Context economy
+
+Agents pay for every token on stdout. Keep responses small enough to reason about.
+
+- Never embed logs, file contents, or nested collections in a list response. Return counts and a follow-up command instead.
+- Cap the default page at 50 items with summary fields.
+- Truncate long text in human tables with an ellipsis and a hint to `get`. Never truncate JSON.
+- Return the IDs and status the next command needs, so the agent does not make a second lookup.
+- Warn on stderr when a single response exceeds 1 MB, and suggest `--fields`, `--limit`, or `--output`.
+- `--output <path>` writes large payloads or downloads to a file and prints the path. It does not print the body.
 
 ## 6. Errors and exit codes
 
@@ -311,7 +416,7 @@ acme whoami
 ```
 
 - `auth login` on a TTY can open a browser. Off a TTY it prints the URL and code, or accepts `--token`.
-- `auth status --json` returns `{"authenticated": true, "profile": "default", "org": "acme", "user": "omer@acme.com", "expires_at": "2026-12-01T00:00:00Z"}`.
+- `auth status --json` returns `{"authenticated": true, "profile": "default", "base_url": "https://api.acme.com", "org": "acme", "user": "omer@acme.com", "expires_at": "2026-12-01T00:00:00Z"}`.
 - `auth logout` removes the local credential and confirms.
 
 ### 7.2 Credential precedence
@@ -332,6 +437,7 @@ Document the order in `auth --help`. CI uses env. Humans use the keychain or con
 - `config get`, `set`, `list`, and `unset` operate on the same file. `config list --json` exposes keys and sources.
 - Profiles group base URL, org, and credentials: `--profile staging`, `<TOOL>_PROFILE=staging`.
 - `--base-url` and `<TOOL>_BASE_URL` support self-hosted and staging environments.
+- Pin the API version in config, expose `--api-version`, and send it on every request in the header the API expects.
 - Validate credentials only in commands that need them. `--help` and `--version` never touch config or network.
 
 ### 7.4 Secrets
@@ -340,13 +446,37 @@ Document the order in `auth --help`. CI uses env. Humans use the keychain or con
 - Redact `Authorization`, cookies, and any key named `token`, `secret`, `password`, or `key` in `--debug` and `--dry-run`.
 - Never write tokens to logs, crash reports, or telemetry.
 
+### 7.5 Environment visibility
+
+An agent must know which product, org, and environment a command will act on before it runs.
+
+- Root help shows the active profile, base URL, org, and API version when configured.
+- `auth status` shows the same set, plus the user and token expiry.
+- Destructive confirmation repeats the profile, environment, target name, and target ID.
+- `whoami` is the one-command check: user, org, profile, environment, token expiry.
+- When the target is ambiguous, exit 2 and list the choices. Never fall back to the first profile.
+- Refresh tokens before they expire when expiry is under 60 seconds. If refresh fails, exit 3 with the `auth login` command.
+
+### 7.6 Doctor
+
+SHOULD ship `doctor`:
+
+```
+acme doctor
+acme doctor --json
+```
+
+It checks the installed version, config path and permissions, credential presence and expiry, DNS and TLS to the base URL, proxy settings, clock skew over 5 minutes, and API reachability. It prints one line per check with pass, warn, or fail, and exits 1 if any check fails. `--json` returns a list of checks with `name`, `status`, `detail`, and `fix`.
+
+`doctor` saves support time and gives an agent a single diagnostic command.
+
 ## 8. Safety and state
 
 ### 8.1 Destructive commands
 
 Destructive means data can be lost: delete, revoke, cancel, rotate, bulk update.
 
-- On a TTY, print the target name and ID and ask for confirmation.
+- On a TTY, print the target name, ID, profile, and environment, then ask for confirmation.
 - Off a TTY, refuse without `--yes` and exit 2 with a hint.
 - Support `--dry-run` on every destructive command. It prints the resolved request and exits 0.
 - `delete --all` requires `--yes` and prints the count before acting.
@@ -356,6 +486,14 @@ Destructive means data can be lost: delete, revoke, cancel, rotate, bulk update.
 
 `--dry-run` prints method, URL, and body to stderr with secrets redacted. It runs the same validation and auth checks as the real call, then stops before the request. Exit 0 means "would have run", not "ran".
 
+`--dry-run --json` prints a structured request to stdout instead:
+
+```json
+{"method": "POST", "url": "https://api.acme.com/v1/projects", "headers": {"content-type": "application/json"}, "body": {"name": "web"}}
+```
+
+The structured form lets an agent inspect a write without parsing prose. Secrets are redacted in both forms.
+
 ### 8.3 Updates
 
 - `update` sends only the fields the user passed. No read-modify-write unless the API requires it.
@@ -364,7 +502,7 @@ Destructive means data can be lost: delete, revoke, cancel, rotate, bulk update.
 
 ### 8.4 Idempotency
 
-- `create` sends an idempotency key. Derive it from the request and expose `--idempotency-key` for retries.
+- `create` sends an idempotency key: a UUID generated once per invocation and reused for retries inside that invocation. `--idempotency-key` accepts an external key for a caller that retries across runs.
 - Retries of writes happen only with an idempotency key.
 - `--wait` blocks on long operations and prints progress to stderr.
 
@@ -375,16 +513,32 @@ Destructive means data can be lost: delete, revoke, cancel, rotate, bulk update.
 - Print a summary: succeeded, failed, skipped.
 - Exit 9 when any item fails, even if others succeeded.
 
+### 8.6 Asynchronous jobs
+
+Some writes return a job instead of a finished resource. Handle them with one pattern:
+
+- `create` prints the job object immediately with `{"id", "status", "terminal"}` and a hint to wait.
+- `--wait` polls until a terminal status, then prints the finished resource when the API provides one.
+- A `wait <id>` command exists for jobs created earlier: `acme deploy wait dep_123`.
+- Poll with backoff: 1s, 2s, 4s, 8s, capped at 15s. Default timeout 600 seconds.
+- Terminal statuses come from a documented enum. Success exits 0. Failure exits 1 and prints the server message. Cancellation exits 130 only when the user interrupted.
+- Progress goes to stderr. `--json --wait` prints one final document, not a stream of polls.
+
 ## 9. Network behavior
 
 - Default timeout is 30 seconds. `--timeout` overrides.
-- Retry idempotent requests twice on 429, 5xx, and network errors. Honor `Retry-After`. Use exponential backoff with jitter.
+- Retry reads, and writes that carry an idempotency key, twice on 429, 5xx, and network errors. Honor `Retry-After`. Use exponential backoff with jitter.
 - Never retry a write without an idempotency key.
 - Send a stable `User-Agent`: `<tool>/<version> (<os>; <arch>)`.
 - Follow redirects only for safe methods, and never forward the token to another host.
 - Use HTTP/2 when the client supports it. Reuse connections within one command.
 - Parallelize independent lookups, not writes.
 - Stream downloads to disk with progress on stderr. Do not buffer an entire file in memory.
+- Honor `HTTPS_PROXY`, `HTTP_PROXY`, and `NO_PROXY`.
+- Verify TLS by default. Support `--cacert <path>` for a private CA. Do not ship an `--insecure` flag.
+- Refuse a plain `http://` base URL unless the host is loopback or the user passes `--allow-http`.
+- Write downloads to a temp file and rename on success. Never leave a partial file at the target path.
+- For uploads, stream the body, set the content type from the file or `--content-type`, and support `--checksum` when the API accepts one.
 
 ## 10. Help and discoverability
 
@@ -392,7 +546,7 @@ Destructive means data can be lost: delete, revoke, cancel, rotate, bulk update.
 
 ### 10.1 Root help
 
-Show usage, a two-line description, command groups, global flags, three examples, and a docs URL. Keep it under 60 lines.
+Show usage, a two-line description, command groups, global flags, three examples, and a docs URL. Keep it under 60 lines. When a profile is configured, add one line with the active profile, base URL, org, and API version, for example `Profile: default (https://api.acme.com, org acme, API 2026-01-01)`.
 
 ### 10.2 Command help
 
@@ -444,6 +598,15 @@ SHOULD ship `acme schema --json`, which prints the command tree with arguments, 
 ### 10.5 Completions
 
 Ship `completion bash|zsh|fish`. Completions include subcommands and flag names. Completion generation never calls the network.
+
+### 10.6 Examples are tested
+
+Help examples are fixtures, not decoration.
+
+- Run each example with `--dry-run` where the command writes, and assert exit 0 and the request shape.
+- Run read examples against a mock or sandbox and assert the exit code and JSON keys.
+- Use realistic IDs and names. Never use `abc123`, `<id>`, or `foo`.
+- When a product changes a flag, the example test fails before a user sees the stale help.
 
 ## 11. Stack, layout, and code
 
@@ -586,6 +749,13 @@ Rules:
 | Breaking field renames | Agents break | Major version |
 | Hidden global state | Unreproducible runs | Visible config and `--profile` |
 | `--force` everywhere | Data loss | `--dry-run`, `--yes`, target echo |
+| Interactive REPL | Cannot be scripted or composed | One command per invocation |
+| Silent profile or org choice | Writes land in the wrong account | Exit 2 with the choices |
+| `tool@latest` in CI | Unreproducible builds | Pin the version |
+| Client-side filtering by default | Wrong counts, missing records | Server-side filter or a warning |
+| `--insecure` TLS flag | Silent credential exposure | Custom CA via `--cacert` |
+| Auto-update on every run | Slow startup, surprise changes | Cached check, opt out |
+| Terminal-width-dependent JSON | Parsers break across environments | Fixed shape, width only affects tables |
 
 ## 17. Definition of done
 
@@ -600,25 +770,32 @@ The CLI is done when every box is checked.
 **Interface**
 
 - [ ] Every command has `--help` with arguments, flags, defaults, env fallbacks, and two real examples.
+- [ ] Help examples are executed by the test suite.
 - [ ] `--version` prints semver only.
 - [ ] Unknown commands and flags exit 2 with a suggestion.
 - [ ] Shell completions exist for bash, zsh, and fish.
+- [ ] Root help shows the active profile, base URL, org, and API version.
 
 **Output**
 
 - [ ] Every data command supports `--json` and emits one document.
-- [ ] JSON uses stable `snake_case` keys, UTC timestamps, string IDs, and integer minor units for money.
+- [ ] JSON uses one stable key convention, UTC timestamps, string IDs, and integer minor units for money.
 - [ ] Lists include `has_more` and `next_cursor`; `--limit`, `--cursor`, and `--all` work.
+- [ ] Lists return summaries; `get` returns the full object; `--full` exists.
 - [ ] `--quiet` prints identifiers only.
 - [ ] No ANSI codes when piped, when `--json`, or when `NO_COLOR` is set.
 - [ ] Errors print to stderr with a code, message, and hint.
+- [ ] `--dry-run --json` prints a structured request.
 
 **Safety**
 
 - [ ] Destructive commands prompt on a TTY and require `--yes` off a TTY.
 - [ ] Destructive commands support `--dry-run` with redacted output.
 - [ ] Writes send idempotency keys; retries never duplicate resources.
-- [ ] Bulk operations print a summary and exit non-zero on any failure.
+- [ ] Bulk operations print a summary and exit 9 on any failure.
+- [ ] `update` supports `--set` and `--unset`; no full object is required.
+- [ ] Async commands expose a job, `--wait`, and a `wait` command.
+- [ ] Name resolution never picks the first match when several exist.
 
 **Auth and config**
 
@@ -626,6 +803,8 @@ The CLI is done when every box is checked.
 - [ ] Precedence is flag, env, project config, user config, keychain, and it is documented.
 - [ ] Config is `0600`; secrets never appear in logs or errors.
 - [ ] Profiles and `--base-url` work.
+- [ ] `whoami` and `doctor` report the target and diagnose setup.
+- [ ] Token refresh happens before expiry.
 - [ ] `--help` and `--version` work offline and without auth.
 
 **Operations**
@@ -636,6 +815,8 @@ The CLI is done when every box is checked.
 - [ ] Tests cover parsing, formatting, redaction, exit codes, and HTTP failures.
 - [ ] Golden snapshots cover help and JSON for every command.
 - [ ] The conformance checker passes.
+- [ ] HTTPS is enforced; proxy variables work; no `--insecure` flag exists.
+- [ ] Downloads write atomically; uploads stream.
 
 **Agent path**
 
@@ -644,7 +825,9 @@ The CLI is done when every box is checked.
 - [ ] README includes the `AGENTS.md` snippet.
 - [ ] Five canonical tasks complete using only `--help` and `--json`.
 
-## 18. Reference: first session
+## 18. Build loop
+
+### 18.1 First session
 
 A first working CLI in one session looks like this:
 
@@ -653,13 +836,37 @@ A first working CLI in one session looks like this:
 3. Write the command tree on one screen. Fix names until the pattern repeats.
 4. Scaffold from the stack template: config, auth, client, output, errors.
 5. Implement `auth status`, `whoami`, and one `list` command end to end.
-6. Add `--json`, `--limit`, `--cursor`, and help examples to that command.
-7. Implement reads, then writes, then destructive commands.
-8. Run the conformance checker and fix every MUST failure.
-9. Run the five canonical tasks with stdin closed.
-10. Write the README and the agent snippet.
+6. Add `--json`, `--limit`, `--cursor`, `--fields`, and tested help examples to that command.
+7. Run the per-command checklist below against it. Fix the shape before copying it.
+8. Implement reads, then writes, then destructive commands, then streaming and bulk.
+9. Run the conformance checker and fix every MUST failure.
+10. Run the five canonical tasks with stdin closed.
+11. Write the README, the agent snippet, and the changelog.
 
 The first command proves the shape. Every command after it copies the shape.
+
+### 18.2 Per-command checklist
+
+Run this before marking any command done:
+
+- [ ] The command comes from a row in the surface map and does one job.
+- [ ] The name follows the grammar and the CRUD vocabulary.
+- [ ] Usage fits on one line and names the argument type.
+- [ ] Help has two tested examples with realistic values.
+- [ ] Defaults and env fallbacks appear in help.
+- [ ] `--json` returns the documented shape for its verb.
+- [ ] Lists paginate and include `has_more` and `next_cursor`.
+- [ ] Empty results exit 0 with an empty array in JSON.
+- [ ] Errors use the shared envelope and the correct exit code.
+- [ ] The command works with stdin closed and no TTY.
+- [ ] Writes support `--dry-run` and redact secrets.
+- [ ] Destructive commands echo profile, environment, name, and ID.
+- [ ] Tests cover success, one failure, and the non-TTY path.
+- [ ] The row is marked done in `CLI.md`.
+
+### 18.3 Order of work
+
+Build reads before writes, and writes before destructive commands. Reads prove the client, auth, config, and output modules with low risk. Writes prove idempotency, dry-run, and validation. Destructive commands prove confirmation and bulk safety. Streaming and bulk come last because they combine every earlier concern.
 
 ## 19. Reference: canonical tasks
 
@@ -686,3 +893,56 @@ printf '' | acme project delete prj_123
 ```
 
 An agent that can complete these five without reading the source can operate the product.
+
+## 20. Scoring a CLI
+
+Use this rubric to judge a finished CLI or a work in progress. Score from evidence: run the binary, read the help, inspect the JSON, break the auth. Do not score from the README.
+
+| Dimension | Points | Full marks |
+|---|---|---|
+| Surface | 20 | ≥ 90% coverage, one command per job, gaps documented in `CLI.md` |
+| Agent contract | 20 | `--json`, no non-TTY prompts, stable fields, exit codes, `--dry-run`, `schema --json` |
+| Output | 15 | Correct shapes, pagination, summaries, context economy, no truncation |
+| Safety | 15 | Confirmation, `--yes`, idempotency, ambiguity errors, environment echo |
+| Auth and config | 10 | Non-TTY login, precedence, profiles, refresh, `doctor` |
+| Help | 10 | Tested examples, defaults, env fallbacks, suggestions on error |
+| Engineering | 10 | Clean layers, tests, startup budget, distribution, changelog |
+
+Each dimension scores `0` when absent, half when partial, full when a reviewer can point to the behavior in a run. A CLI passes at **90/100 with zero MUST failures**. Two independent reviewers score within 5 points, or the gap is investigated.
+
+Common score losses:
+
+- `--json` exists but errors are prose.
+- Lists truncate at 50 with no cursor.
+- Login only works with a browser.
+- `delete` prompts in CI.
+- Help examples use placeholder IDs.
+- Startup spends 300 ms loading every command module.
+
+## 21. Exemplars
+
+Study these CLIs for patterns. Copy the pattern, not the surface.
+
+| CLI | Copy | Avoid |
+|---|---|---|
+| GitHub CLI (`gh`) | `--json` with field selection, `auth status`, grouped help, exit codes | Large flag surfaces on some commands |
+| Fly.io (`flyctl`) | App and org context flags, `--yes`, machine output, deployment waits | Hiding context in implicit config |
+| Vercel (`vercel`) | `--scope`, `--token`, `--yes`, production flags, project linking | Interactive defaults on first run |
+| Stripe (`stripe`) | Test and live mode visibility, clear resource verbs, webhook tooling | Treating the CLI as a thin HTTP shell |
+| AWS (`aws`) | Profiles, output selection, consistent pagination | Help depth and inconsistent short flags |
+
+Read one exemplar before designing the command tree. Read the guidelines again before shipping.
+
+## 22. Final check
+
+Before you call the CLI done, run these five commands with a test token and no TTY:
+
+```sh
+acme doctor --json
+acme whoami --json
+acme project list --limit 1 --json
+acme project create --name test --dry-run --json
+printf '' | acme project delete prj_123
+```
+
+Expected: doctor passes, whoami shows the target, list returns one item with pagination fields, dry-run returns a request object, delete exits 2 with a `--yes` hint. Anything else is a bug.

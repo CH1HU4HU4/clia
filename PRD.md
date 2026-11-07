@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | Status | Draft |
-| Version | 0.1 |
+| Version | 0.2 |
 | Owner | Omer |
 | Last updated | 2026-11-07 |
 | Repo | `CH1HU4HU4/clia` |
@@ -108,7 +108,7 @@ The skill walks the agent through six phases. Each phase has an exit criterion, 
 | 1. Surface map | UI nav, routes, OpenAPI, SDK | `CLI.md` surface table | ≥ 90% of capabilities mapped, gaps listed |
 | 2. Design | Surface map | Command tree, output shapes, safety classes | Tree fits on one screen, every command has one job |
 | 3. Scaffold | Design, stack guide | Runnable skeleton with one vertical slice | `--version`, `--help`, and one real command work |
-| 4. Implement | Command tree | Every command with help, JSON, tests | Conformance checker passes |
+| 4. Implement | Command tree | Every data command with help, JSON, tests | Conformance checker passes |
 | 5. Verify | CLI | Golden snapshots, smoke script, agent run | 5 canonical tasks pass non-interactively |
 | 6. Hand off | Verified CLI | README, reference, agent snippet, changelog | A new user reaches a result in 3 commands |
 
@@ -127,6 +127,36 @@ The skill walks the agent through six phases. Each phase has an exit criterion, 
 **Verify.** Run the conformance checker, golden snapshots for help and JSON, a non-TTY smoke script with a test token, and the five canonical tasks. Fix failures before handoff.
 
 **Hand off.** README with install, auth, and five examples. Generated command reference. A short snippet for `AGENTS.md` or `CLAUDE.md` telling future agents to use the CLI and prefer `--json`.
+
+### 6.2 Definition of ready
+
+The skill does not write command code until all of these are answered in `CLI.md`:
+
+- Tool name and binary name, checked against the package registry and the user's `PATH`.
+- Repo language, package manager, and build command.
+- API style (REST, GraphQL), base URLs, and API version header.
+- Auth method and a way to get a token without a browser.
+- Surface map with at least 90% of capabilities mapped and gaps listed.
+- Command tree that fits on one screen.
+- Output convention: key case, timestamp format, ID type, money units.
+- Safety classes for every write.
+- The first vertical slice, named explicitly.
+
+An unanswered item is a stop condition, not a prompt to guess. The skill reports the missing input and proposes the smallest decision needed.
+
+### 6.3 Per-command loop
+
+Once the scaffold exists, the agent builds one command at a time through the same loop:
+
+1. Pick the next command from the surface map. Reads before writes, writes before destructive commands.
+2. Write the command spec in `CLI.md`: usage, arguments, flags, output shape, exit codes, safety class.
+3. Write help text with two runnable examples.
+4. Implement the client call, the command, and the formatter. No formatting in the command.
+5. Add tests: success, one failure class, non-TTY, and `--dry-run` when the command writes.
+6. Run the per-command checks from `CLI-GUIDELINES.md` section 18.
+7. Mark the row done in `CLI.md` and move to the next command.
+
+The loop keeps the CLI working at every step. A half-built command never sits in the tree.
 
 ## 7. Requirements
 
@@ -155,15 +185,32 @@ The skill walks the agent through six phases. Each phase has an exit criterion, 
 - **Honest failure.** Exit codes distinguish usage, auth, permission, not found, conflict, rate limit, and network errors.
 - **Self-teaching help.** Every command has real examples, defaults, env vars, and exit codes.
 - **Safe writes.** Destructive commands confirm on a TTY, require `--yes` off a TTY, and support `--dry-run`.
+- **Visible target.** The CLI shows the profile, environment, and org it will act on, and refuses to guess when the target is ambiguous.
 - **Lean runtime.** Startup stays inside budget, dependencies stay few, help and version do no network work.
+- **Context economy.** Lists return summaries, default pages stay small, and every byte on stdout is data the caller asked for.
+
+### 7.3 Eval design
+
+The skill is only as good as the CLIs it produces. Evals test both the manual and the agent that follows it.
+
+| Eval | Setup | Pass condition |
+|---|---|---|
+| Greenfield REST | Empty repo with a fake SaaS API and token auth | Rubric ≥ 90, checker 100% |
+| Existing CLI | Partial CLI with interactive login and table output | Agent extends it without breaking existing commands |
+| OAuth product | Device flow required, no static token | Non-TTY auth path works |
+| Gaps | UI capability with no public endpoint | Gap recorded, no private endpoint used |
+
+Each fixture ships seeded defects: a prompt in non-TTY, a missing `--json`, a silent truncation, a wrong exit code, and a leaked token in debug output. The checker must catch every one. Every defect the council or a reviewer finds becomes a new eval case, so the skill improves with each round.
 
 ## 8. Success metrics
 
 | Metric | Target | Measurement |
 |---|---|---|
 | Time to first working command | < 30 min | Timed agent run on a fixture repo |
+| Time to add one command | < 15 min | Timed run after the first vertical slice |
 | Surface coverage | ≥ 90% | Surface map rows with a command |
 | Conformance | 100% of MUST rules | Checker output |
+| Rubric score | ≥ 90/100 | Independent review with `CLI-GUIDELINES.md` section 20 |
 | Canonical agent tasks | 5 of 5 | Non-TTY scripted run using only `--help` and `--json` |
 | Interactive prompts in non-TTY | 0 | Test suite scans stderr and process state |
 | Startup latency | p95 < 150 ms Node, < 50 ms native | Hyperfine on the built binary |
