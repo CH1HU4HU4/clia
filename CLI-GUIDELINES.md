@@ -913,7 +913,7 @@ When the API capability inventory in section 2.6 records a capability as unsuppo
 - [ ] **M39** [check] [P1] An installable artifact is built in CI with checksums and a documented install line.
 - [ ] **M40** [check] [P0] Tests cover parsing, formatting, redaction, exit codes, and HTTP failures.
 - [ ] **M41** [check] [P0] Golden snapshots cover help for every command and the five canonical tasks, plus `schema --json` when M46 ships. Not every JSON response.
-- [ ] **M42** [check] [P0] The conformance checker passes every applicable [check] item. All P0 items block merge; P1 failures are reported as deferred and block only the 1.0 gate.
+- [ ] **M42** [check] [P0] The conformance checker passes every applicable P0 [check] item and reports every applicable P1 [check] item as pass or deferred. P1 failures block only the 1.0 gate.
 - [ ] **M43** [check] [P0] HTTPS is enforced; proxy variables work; no `--insecure` flag exists.
 - [ ] **M44** [check] [P0] Downloads write atomically; uploads stream.
 
@@ -990,7 +990,7 @@ Use this rubric to judge a finished CLI or a work in progress. Score from eviden
 | Dimension | Points | Full marks |
 |---|---|---|
 | Surface | 20 | ≥ 90% coverage, one command per job, gaps documented in `CLI.md` |
-| Agent contract | 20 | `--json`, no non-TTY prompts, stable fields, exit codes, `--dry-run`, `schema --json` |
+| Agent contract | 20 | `--json`, no non-TTY prompts, stable fields, exit codes, `--dry-run`, `schema --json` when shipped |
 | Output | 15 | Correct shapes, pagination, summaries, context economy, no truncation |
 | Safety | 15 | Confirmation, `--yes`, idempotency, ambiguity errors, environment echo |
 | Auth and config | 10 | Non-TTY login, precedence, profiles, refresh, `doctor` |
@@ -1024,14 +1024,6 @@ Read one exemplar before designing the command tree. Read the guidelines again b
 
 ## 22. Final check
 
-Before you call the CLI done, run the M48 canonical tasks with a test token and no TTY:
+Run the five canonical tasks from section 19 with a test token and no TTY. M48 is the gate.
 
-```sh
-acme doctor --json
-acme whoami --json
-acme project list --limit 1 --json
-acme project create --name test --dry-run --json
-printf '' | acme project delete prj_123
-```
-
-Expected: doctor passes, whoami shows the target, list returns one item with pagination fields, dry-run returns a request object, delete exits 10 with a `--yes` hint. Anything else is a bug.
+Expected: help and `auth status` work, list returns one item with pagination fields, get returns the full resource, create dry-run returns a request object, delete exits 10 with a `--yes` hint. If `doctor` is shipped (M33), run it too. It is not part of the merge gate. Anything else is a bug.

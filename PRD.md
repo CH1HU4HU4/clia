@@ -86,7 +86,7 @@ A product-specific command line tool, named after the product, that:
 | Make output machine-usable | 100% of commands support `--json` with a stable shape |
 | Make help sufficient | An agent completes 5 canonical tasks from `--help` alone |
 | Keep the CLI lean | Startup p95 under 150 ms for Node, 50 ms for native binaries |
-| Catch drift | Conformance checker passes 100% of [check] rules in CI |
+| Catch drift | Conformance checker passes 100% of P0 [check] rules at merge and 100% of P1 at 1.0 |
 
 ### 5.2 Non-goals
 
@@ -211,7 +211,7 @@ Each fixture ships seeded defects: a prompt in non-TTY, a missing `--json`, a si
 | Time to first working command | < 30 min | Timed agent run on a fixture repo |
 | Time to add one command | < 15 min | Timed run after the first vertical slice |
 | Surface coverage | ≥ 90% | Surface map rows with a command |
-| Conformance | 100% of [check] rules | Checker output |
+| Conformance | 100% of P0 [check] rules at merge; P1 at 1.0 | Checker output |
 | Rubric score | ≥ 90/100 | Independent review with `CLI-GUIDELINES.md` section 20 |
 | Canonical agent tasks | 5 of 5 | Non-TTY scripted run using only `--help` and `--json` |
 | Interactive prompts in non-TTY | 0 | Test suite scans stderr and process state |
