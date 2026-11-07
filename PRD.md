@@ -108,7 +108,7 @@ The skill walks the agent through six phases. Each phase has an exit criterion, 
 | 1. Surface map | UI nav, routes, OpenAPI, SDK | `CLI.md` surface table | ≥ 90% of capabilities mapped, gaps listed |
 | 2. Design | Surface map | Command tree, output shapes, safety classes | Tree fits on one screen, every command has one job |
 | 3. Scaffold | Design, stack guide | Runnable skeleton with one live vertical slice | `--version`, `--help`, one live command, and mapped 401/404/429 work |
-| 4. Implement | Command tree | Every data command with help, JSON, tests | Conformance checker passes |
+| 4. Implement | Command tree | Every data command with help, JSON, tests | All applicable P0 checks pass |
 | 5. Verify | CLI | Golden snapshots, smoke script, agent run | 5 canonical tasks pass non-interactively |
 | 6. Hand off | Verified CLI | README, reference, agent snippet, changelog, CI workflow, release script | A new user reaches a result in 3 commands and CI runs the full suite |
 

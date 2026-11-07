@@ -881,8 +881,8 @@ When the API capability inventory in section 2.6 records a capability as unsuppo
 - [ ] **M16** [check] [P0] Lists return summaries; `get` returns the full object; `--full` exists.
 - [ ] **M17** [check] [P1] `--quiet` prints identifiers only.
 - [ ] **M18** [check] [P0] No ANSI codes when piped, when `--json`, or when `NO_COLOR` is set.
-- [ ] **M19** [check] [P0] Every non-zero exit except 9 prints an error on stderr with a message, hint, and matching exit status. Human mode uses the section 6.1 text format, where the exit status is the code; `--json` uses the JSON envelope with an explicit `code`. Exit 9 reports partial success as a bulk result on stdout. Exit 130 needs an envelope only when the CLI traps the interrupt.
-- [ ] **M20** [check] [P0] `--dry-run --json` prints a structured request with secrets redacted.
+- [ ] **M19** [check] [P0] Every non-zero exit except 9 prints an error on stderr with a message, hint, and matching exit status. Human mode uses the section 6.1 text format, where the exit status is the code; `--json` uses the JSON envelope with an explicit `code`. When a profile is configured, the error includes the resolved target. Exit 9 reports partial success as a bulk result on stdout. Exit 130 needs an envelope only when the CLI traps the interrupt.
+- [ ] **M20** [check] [P0] `--dry-run --json` prints a structured request with secrets redacted. When a profile is configured, it includes the resolved target.
 
 **Safety**
 
