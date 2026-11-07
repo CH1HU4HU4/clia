@@ -35,7 +35,7 @@ Three words drive every decision:
 
 A CLI is finished when it keeps these seven guarantees:
 
-1. Every documented product capability has a command.
+1. Every documented product capability has a command, or a documented gap with a reason.
 2. Given flags and a token, every command runs without interaction.
 3. `stdout` carries data. `stderr` carries progress, hints, and errors.
 4. Every data command supports `--json` with a stable shape.
@@ -948,7 +948,7 @@ The first command proves the shape. Every command after it copies the shape.
 
 ### 18.2 Per-command checklist
 
-Run the command-scoped P0 items from section 17 before marking any command done: **M03, M07, M08, M13, M14, M15, M16, M19, M20, M21, M22, M23, M25, M26, M27, M36**.
+Run the command-scoped P0 items from section 17 before marking any command done: **M03, M07, M08, M13, M14, M15, M16, M19, M20, M21, M22, M23, M25, M26, M27**.
 
 Three items are assessed at the gate, not per command: M02 once after the surface map, M36 once after scaffolding, and M45 across the full suite at merge.
 
