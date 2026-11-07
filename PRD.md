@@ -95,7 +95,7 @@ A product-specific command line tool, named after the product, that:
 - Hosting or deployment, and publishing the CLI to a public registry or marketplace. Build and release workflow files are in scope; the publish decision is not.
 - Replacing the product API or SDK
 - Auto-generating a CLI from OpenAPI with no design pass
-- Supporting every language in v1. TypeScript first, then Go and Python
+- Shipping templates for every language in v1. TypeScript, Go, and Python ship first. The guidance still applies to other languages; their templates come later
 - Reverse-engineering private endpoints the product does not document
 
 ## 6. Workflow

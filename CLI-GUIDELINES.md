@@ -35,7 +35,7 @@ Three words drive every decision:
 
 A CLI is finished when it keeps these seven guarantees:
 
-1. Every documented product capability has a command, or a documented gap with a reason.
+1. Every user-reachable product capability has a command, or a documented gap with a reason.
 2. Given flags and a token, every command runs without interaction.
 3. `stdout` carries data. `stderr` carries progress, hints, and errors.
 4. Every data command supports `--json` with a stable shape.
@@ -709,6 +709,8 @@ Help examples are fixtures, not decoration.
 
 Match the language of the API client when one exists. A CLI in the repo's language gets maintained. A CLI in a new language gets abandoned. If the repo language is not in this table, use it anyway and record the choice in `CLI.md`.
 
+The skill ships templates for TypeScript, Go, and Python. Other languages, including Rust, follow the same rules with their standard parser; their templates arrive later.
+
 ### 11.2 Layout
 
 ```
@@ -950,7 +952,9 @@ The first command proves the shape. Every command after it copies the shape.
 
 Run the command-scoped P0 items from section 17 before marking any command done: **M03, M07, M08, M13, M14, M15, M16, M19, M20, M21, M22, M23, M25, M26, M27**.
 
-Three items are assessed at the gate, not per command: M02 once after the surface map, M36 once after scaffolding, and M45 across the full suite at merge.
+Four items are assessed at the gate, not per command: M02 once after the surface map, M06 once after the first live slice, M36 once after scaffolding, and M45 across the full suite at merge.
+
+M24 applies when the first bulk command is built. M44 applies when the first file command is built.
 
 Section 17 is the source of truth. If a command-specific rule is missing there, add it to section 17 first, then reference it here.
 
