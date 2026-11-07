@@ -948,7 +948,9 @@ The first command proves the shape. Every command after it copies the shape.
 
 ### 18.2 Per-command checklist
 
-Run the command-scoped P0 items from section 17 before marking any command done: **M02, M03, M07, M08, M13, M14, M15, M16, M19, M20, M21, M22, M23, M25, M26, M27, M36, M45**.
+Run the command-scoped P0 items from section 17 before marking any command done: **M03, M07, M08, M13, M14, M15, M16, M19, M20, M21, M22, M23, M25, M26, M27, M36**.
+
+Three items are assessed at the gate, not per command: M02 once after the surface map, M36 once after scaffolding, and M45 across the full suite at merge.
 
 Section 17 is the source of truth. If a command-specific rule is missing there, add it to section 17 first, then reference it here.
 
@@ -972,7 +974,7 @@ acme project list --limit 5 --json
 acme project get prj_123 --json
 
 # 4. Preview a write, then perform it in a sandbox
-acme project create --name test --dry-run
+acme project create --name test --dry-run --json
 acme project create --name test --json
 # Delete the created project after the task.
 
