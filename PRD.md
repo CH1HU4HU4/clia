@@ -197,7 +197,7 @@ The skill is only as good as the CLIs it produces. Evals test both the manual an
 
 | Eval | Setup | Pass condition |
 |---|---|---|
-| Greenfield REST | Empty repo with a fake SaaS API and token auth | Rubric ≥ 90, checker 100% |
+| Greenfield REST | Empty repo with a fake SaaS API and token auth | Rubric ≥ 90, all applicable P0 checks pass |
 | Existing CLI | Partial CLI with interactive login and table output | Agent extends it without breaking existing commands |
 | OAuth product | Device flow required, no static token | Non-TTY auth path works |
 | Gaps | UI capability with no public endpoint | Gap recorded, no private endpoint used |
