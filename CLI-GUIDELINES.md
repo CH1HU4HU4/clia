@@ -62,19 +62,21 @@ Read, in this order:
 
 Write `CLI.md` in the repo root with this table before writing command code:
 
-| Capability | User job | API call | Class | Command | Notes |
-|---|---|---|---|---|---|
-| List projects | Find a project | `GET /v1/projects` | read | `acme project list` | paginated |
-| Create project | Start a project | `POST /v1/projects` | write | `acme project create` | idempotency key |
-| Delete project | Remove a project | `DELETE /v1/projects/{id}` | destructive | `acme project delete` | needs `--yes` |
-| Read logs | Debug a deploy | `GET /v1/deploys/{id}/logs` | read | `acme deploy logs` | stream |
+| Capability | Source | User job | API call | Class | Command | Notes |
+|---|---|---|---|---|---|---|
+| List projects | `web/projects/page.tsx` | Find a project | `GET /v1/projects` | read | `acme project list` | paginated |
+| Create project | `web/projects/new.tsx` | Start a project | `POST /v1/projects` | write | `acme project create` | idempotency key |
+| Delete project | `web/projects/[id]/settings.tsx` | Remove a project | `DELETE /v1/projects/{id}` | destructive | `acme project delete` | needs `--yes` |
+| Read logs | `web/deployments/[id]/logs.tsx` | Debug a deploy | `GET /v1/deploys/{id}/logs` | read | `acme deploy logs` | stream |
 
 Rules:
 
 - One row per user job. Two jobs can share an endpoint and get two commands.
+- Every row cites a source: a UI file or route, or an OpenAPI `operationId`. A row without a source is a guess.
 - Class every row as `read`, `write`, or `destructive`.
 - List gaps at the bottom. A gap is a UI capability with no public API.
 - Cover at least 90% of the rows with a command before implementation starts.
+- A small product has at least 15 rows. A typical SaaS has 25 or more. Fewer rows means the inventory is incomplete.
 
 ### 2.3 Gaps
 
@@ -392,6 +394,7 @@ Keep the shape of a result tied to the verb, not to the endpoint:
 | `delete` | `{"ok": true, "id": "prj_123"}` |
 | Action | `{"ok": true, "id": "dep_123", "status": "queued"}` |
 | Job | `{"id": "job_123", "status": "running", ...}` |
+| Bulk | `{"ok": false, "succeeded": 8, "failed": 2, "skipped": 0, "truncated": false, "failures": [{"id": "prj_9", "code": "conflict", "message": "..."}]}` |
 
 Rules:
 
@@ -399,6 +402,7 @@ Rules:
 - `create` and `update` return the object as the server sees it, including server-generated fields.
 - `delete` returns the ID and `ok`. It does not echo the deleted object.
 - A job result includes `status` and, when known, `terminal` as a boolean. Status values come from a documented enum.
+- A bulk result includes `succeeded`, `failed`, `skipped`, `truncated`, and a `failures` array with one entry per failed item.
 
 ### 5.8 Context economy
 
@@ -432,7 +436,7 @@ Rules:
 | Code | Meaning | Typical cause |
 |---|---|---|
 | 0 | Success | |
-| 1 | Unexpected error | Bug or unhandled case |
+| 1 | Operation failed or unexpected error | Job failure, bug, unhandled case |
 | 2 | Usage error | Bad flag, missing argument, unknown command |
 | 3 | Authentication required | 401, missing or expired token |
 | 4 | Forbidden | 403, plan limit, insufficient role |
@@ -440,7 +444,7 @@ Rules:
 | 6 | Conflict or invalid input | 409, 422, failed precondition |
 | 7 | Rate limited or server error | 429, 5xx after retries |
 | 8 | Network or timeout | DNS, connection, read timeout |
-| 9 | Partial success | A bulk write where at least one item failed |
+| 9 | Partial success | A bulk write where an item failed or the cap skipped work |
 | 10 | Confirmation required | Destructive command without `--yes` off a TTY |
 | 11 | Ambiguous target | Several name, org, or profile matches |
 | 12 | Diagnostic failure | `doctor` found a failed check |
@@ -456,10 +460,11 @@ Rules:
 
 ### 6.3 Error codes
 
-Use a small stable set in the JSON error envelope: `usage`, `auth_required`, `forbidden`, `not_found`, `conflict`, `validation`, `rate_limited`, `server_error`, `network_error`, `timeout`, `cancelled`, `confirmation_required`, `ambiguous_target`, `diagnostic_failed`. Agents branch on `code`, not on the message.
+Use a small stable set in error envelopes and bulk results: `usage`, `auth_required`, `forbidden`, `not_found`, `conflict`, `validation`, `rate_limited`, `server_error`, `network_error`, `timeout`, `cancelled`, `confirmation_required`, `ambiguous_target`, `diagnostic_failed`, `partial_success`, `job_failed`. Agents branch on `code`, not on the message.
 
 | Code | Exit |
 |---|---|
+| `job_failed` | 1 |
 | `usage` | 2 |
 | `auth_required` | 3 |
 | `forbidden` | 4 |
@@ -467,6 +472,7 @@ Use a small stable set in the JSON error envelope: `usage`, `auth_required`, `fo
 | `conflict`, `validation` | 6 |
 | `rate_limited`, `server_error` | 7 |
 | `network_error`, `timeout` | 8 |
+| `partial_success` | 9 |
 | `confirmation_required` | 10 |
 | `ambiguous_target` | 11 |
 | `diagnostic_failed` | 12 |
@@ -508,7 +514,7 @@ Project config never supplies a credential. It holds only non-secret context: pr
 - `--base-url` and `<TOOL>_BASE_URL` support self-hosted and staging environments.
 - Pin the API version in config, expose `--api-version`, and send it on every request in the header the API expects. An unsupported version exits 6 with the supported versions in the message.
 - Machine mode can be a setting, not only a flag: `output = "json"` in config or `<TOOL>_OUTPUT=json` applies `--json` behavior, `--no-input`, and no color to every data command. A per-command flag cannot turn prompts back on.
-- Validate credentials only in commands that need them. `--help` and `--version` never touch config or network.
+- Validate credentials only in commands that need them. `--help` and `--version` never require auth and never touch the network. Root help may read non-secret local context (profile, base URL, org) to show the target, and must work when config is missing.
 
 ### 7.4 Secrets
 
@@ -587,7 +593,7 @@ The structured form lets an agent inspect a write without parsing prose. Secrets
 - Read commands never require `--yes`, including `list --all`.
 - `--max <n>` caps the work.
 - Print a summary: succeeded, failed, skipped.
-- Exit 9 when any item fails, even if others succeeded.
+- Exit 9 when any item fails or the cap skips work. Exit 9 means partial success, never a plain error, and the result reports counts and failures.
 - A bulk write that hits its cap exits 9 with `truncated: true` and the count left.
 
 ### 8.6 Asynchronous jobs
@@ -788,7 +794,7 @@ Every CLI repo carries `CLI.md` with the surface map, command tree, output shape
 |---|---|
 | Unit | Flag parsing, defaults, table formatter, JSON shaper, redaction, HTTP-to-exit mapping |
 | Contract | Each command against a mock server with recorded fixtures |
-| Golden | `--help` and `--json` snapshots for every command |
+| Golden | `--help` for every command, `schema --json`, and the five canonical task responses |
 | Integration | Real binary, non-TTY, env token, no prompts |
 | Smoke | Read-only run against staging in CI on a schedule |
 | Conformance | The skill's checker against the built binary |
@@ -830,7 +836,7 @@ Rules:
 | Hidden global state | Unreproducible runs | Visible config and `--profile` |
 | `--force` everywhere | Data loss | `--dry-run`, `--yes`, target echo |
 | Interactive REPL | Cannot be scripted or composed | One command per invocation |
-| Silent profile or org choice | Writes land in the wrong account | Exit 2 with the choices |
+| Silent profile or org choice | Writes land in the wrong account | Exit 11 with the choices |
 | `tool@latest` in CI | Unreproducible builds | Pin the version |
 | Client-side filtering by default | Wrong counts, missing records | Server-side filter or a warning |
 | `--insecure` TLS flag | Silent credential exposure | Custom CA via `--cacert` |
@@ -841,12 +847,14 @@ Rules:
 
 This is the single release checklist. Section 18.2 runs the command-scoped subset. If a rule appears elsewhere and here, this list wins. The skill's conformance checker reads these IDs, so keep them stable across guideline versions.
 
-Legend: **[check]** means the conformance checker verifies it. **[review]** means a reviewer inspects it. **P0** blocks the first working merge. **P1** blocks a 1.0 release.
+Legend: **[check]** means an automated check verifies it. **[review]** means a reviewer inspects it. **P0** blocks the first working merge. **P1** blocks a 1.0 release.
+
+A [check] item is verified by running the binary, inspecting repo and config files, driving a mock server, or reading CI output. No [check] item requires reading application source.
 
 **Surface**
 
 - [ ] **M01** [check] [P0] `CLI.md` exists with a surface map, command tree, and open gaps.
-- [ ] **M02** [review] [P0] Every user-reachable capability has a command or a documented gap.
+- [ ] **M02** [review] [P0] Every user-reachable capability has a cited source, a command, or a documented gap, and the map meets the minimum row count.
 - [ ] **M03** [check] [P0] Every command name follows the grammar and CRUD vocabulary.
 - [ ] **M04** [review] [P0] The existing-CLI path (adopt, extend, rebuild) is recorded and followed.
 - [ ] **M05** [review] [P0] The API capability inventory is filled, including pagination, idempotency, async jobs, retries, versioning, tenancy, and limits.
@@ -865,7 +873,7 @@ Legend: **[check]** means the conformance checker verifies it. **[review]** mean
 
 - [ ] **M13** [check] [P0] Every data command supports `--json` and emits one document.
 - [ ] **M14** [check] [P0] JSON uses one stable key convention, UTC timestamps, string IDs, and integer minor units for money.
-- [ ] **M15** [check] [P0] Lists include `has_more`, `next_cursor`, and `truncated`; `--limit`, `--cursor`, and `--all` work; empty results exit 0 with `[]`.
+- [ ] **M15** [check] [P0] Lists include `has_more`, `next_cursor`, and `truncated`; `--limit`, `--cursor`, and `--all` work; empty results exit 0 with the envelope and `data: []`.
 - [ ] **M16** [check] [P0] Lists return summaries; `get` returns the full object; `--full` exists.
 - [ ] **M17** [check] [P1] `--quiet` prints identifiers only.
 - [ ] **M18** [check] [P0] No ANSI codes when piped, when `--json`, or when `NO_COLOR` is set.
@@ -877,7 +885,7 @@ Legend: **[check]** means the conformance checker verifies it. **[review]** mean
 - [ ] **M21** [check] [P0] Destructive commands prompt in human TTY mode and exit 10 without `--yes` in machine mode or off a TTY.
 - [ ] **M22** [check] [P0] Destructive commands support `--dry-run` with redacted output.
 - [ ] **M23** [check] [P0] Writes send idempotency keys where the API supports them; retries never duplicate resources.
-- [ ] **M24** [check] [P0] Bulk writes print a summary and exit 9 on any failure or cap hit.
+- [ ] **M24** [check] [P0] Bulk writes print a result with counts, failures, and `truncated`, and exit 9 when any item failed or the cap skipped work.
 - [ ] **M25** [check] [P0] `update` supports `--set` and `--unset`; no full object is required.
 - [ ] **M26** [check] [P0] Async commands expose a job, `--wait`, and a `wait` command, with a timeout that exits 8 and keeps the job ID.
 - [ ] **M27** [check] [P0] Name and scope resolution exits 11 on ambiguity and never picks the first match.
@@ -887,7 +895,7 @@ Legend: **[check]** means the conformance checker verifies it. **[review]** mean
 - [ ] **M28** [check] [P0] `auth login`, `auth logout`, `auth status`, and `whoami` work.
 - [ ] **M29** [review] [P0] Precedence is flag, env, user config, keychain; project config holds context only, never credentials.
 - [ ] **M30** [check] [P0] Config is `0600`; secrets never appear in logs or errors.
-- [ ] **M31** [check] [P0] Profiles, `--base-url`, and `--api-version` work.
+- [ ] **M31** [check] [P0] Profiles, `--base-url`, `--api-version`, and the machine-output setting work.
 - [ ] **M32** [check] [P0] `whoami` reports user, org, profile, environment, and token expiry.
 - [ ] **M33** [check] [P1] `doctor` diagnoses config, auth, DNS, TLS, proxy, clock skew, and reachability.
 - [ ] **M34** [check] [P0] Token refresh happens before expiry, and failure exits 3 with `auth login`.
@@ -895,7 +903,7 @@ Legend: **[check]** means the conformance checker verifies it. **[review]** mean
 
 **Operations**
 
-- [ ] **M36** [check] [P0] `resolveContext()` is the only source of profile, base URL, org, project, and API version, and its result appears in help, status, dry-run, and errors.
+- [ ] **M36** [review] [P0] Context resolution is centralized in one module, and the resolved profile, base URL, org, project, and API version appear consistently in help, status, dry-run, and errors.
 - [ ] **M37** [check] [P0] Startup meets the budget for the stack.
 - [ ] **M38** [check] [P1] Update checks are cached and can be disabled.
 - [ ] **M39** [check] [P1] An installable artifact is built in CI with checksums and a documented install line.

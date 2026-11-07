@@ -136,7 +136,9 @@ The skill does not write command code until all of these are answered in `CLI.md
 - Repo language, package manager, and build command.
 - API style (REST, GraphQL), base URLs, and API version header.
 - Auth method and a way to get a token without a browser.
-- Surface map with at least 90% of capabilities mapped and gaps listed.
+- Surface map with at least 90% of capabilities mapped, each row cited to a UI route or API operation, and gaps listed.
+- Existing CLI path: adopt, extend, or rebuild.
+- API capability inventory: pagination, idempotency, async jobs, retries, versioning, tenancy, limits.
 - Command tree that fits on one screen.
 - Output convention: key case, timestamp format, ID type, money units.
 - Safety classes for every write.
@@ -263,7 +265,7 @@ The skill itself is not built in this change.
 1. Should the skill ship a `clia` meta-CLI that scaffolds and checks, or keep everything as scripts inside the skill folder?
 2. Does v1 need OAuth device flow, or is API token auth enough for the first fixtures?
 3. How should the skill handle products with several APIs (core, billing, admin) in one repo: one binary with command groups, or several binaries?
-4. Should the conformance checker be language-agnostic (run the built CLI) or inspect source too?
+4. How should the checker combine evidence from running the binary, inspecting repo and config files, driving a mock server, and reading CI output into one report?
 5. Do we standardize JSON on `snake_case` or inherit the product API convention? Current draft inherits, with one convention per tool.
 6. Should the checker read a generated `rules.md` from the section 17 checklist, or parse `CLI-GUIDELINES.md` directly? A generated file avoids drift but adds a build step.
 7. How do we version the guidelines: independent semver, or tied to skill releases?
