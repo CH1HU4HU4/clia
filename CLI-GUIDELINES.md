@@ -528,7 +528,7 @@ An agent must know which product, org, and environment a command will act on bef
 
 - One `resolveContext()` module returns `{profile, base_url, org, project, api_version}`. Every command calls it. No command reads config directly.
 - Register `--profile`, `--org`, `--project`, and `--base-url` once as global flags. Do not redeclare them per command.
-- Root help shows the resolved profile, base URL, org, project, and API version.
+- When a profile is configured, root help shows the resolved profile, base URL, org, project, and API version.
 - `auth status` shows the same set, plus the user and token expiry.
 - `--dry-run` output and every error envelope include the resolved target, so an agent can see where a failed call was pointed.
 - Destructive confirmation repeats the profile, base URL, org, target name, and target ID.
@@ -851,7 +851,7 @@ Legend: **[check]** means an automated check verifies it. **[review]** means a r
 
 A [check] item is verified by running the binary, inspecting repo and config files, driving a mock server, or reading CI output. No [check] item requires reading application source.
 
-When the API capability inventory in section 2.6 records a capability as unsupported, mark the dependent items N/A in `CLI.md` and cite the inventory row. N/A counts as a pass for the merge gate. This applies to M23 (idempotency), M24 (bulk), M26 (async jobs), M38 (update checks), and M44 (file transfer). Do not build a fake capability to satisfy a check.
+When the API capability inventory in section 2.6 records a capability as unsupported, mark the dependent items N/A in `CLI.md` and cite the inventory row. N/A counts as a pass for the merge gate. This applies to M23 (idempotency keys), M24 (bulk writes), M26 (async jobs), and M44 (file transfer). Scope N/A to the unsupported half: M23's rule against duplicate retries always applies, and M44's atomic download rule applies whenever downloads exist. Update checks (M38) are a CLI feature, not an API capability, so they are never N/A. Do not build a fake capability to satisfy a check.
 
 **Surface**
 
@@ -879,7 +879,7 @@ When the API capability inventory in section 2.6 records a capability as unsuppo
 - [ ] **M16** [check] [P0] Lists return summaries; `get` returns the full object; `--full` exists.
 - [ ] **M17** [check] [P1] `--quiet` prints identifiers only.
 - [ ] **M18** [check] [P0] No ANSI codes when piped, when `--json`, or when `NO_COLOR` is set.
-- [ ] **M19** [check] [P0] Every non-zero exit except 9 prints an error envelope to stderr with a code, message, hint, and matching exit status. Exit 9 reports partial success as a bulk result on stdout.
+- [ ] **M19** [check] [P0] Every non-zero exit except 9 prints an error on stderr with a code, message, hint, and matching exit status. Human mode uses the section 6.1 text format; `--json` uses the JSON envelope. Exit 9 reports partial success as a bulk result on stdout. Exit 130 needs an envelope only when the CLI traps the interrupt.
 - [ ] **M20** [check] [P0] `--dry-run --json` prints a structured request with secrets redacted.
 
 **Safety**
