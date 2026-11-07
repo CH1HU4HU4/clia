@@ -76,7 +76,7 @@ Rules:
 - Class every row as `read`, `write`, or `destructive`.
 - List gaps at the bottom. A gap is a UI capability with no public API.
 - Cover at least 90% of the rows with a command before implementation starts.
-- A small product has at least 15 rows. A typical SaaS has 25 or more. Fewer rows means the inventory is incomplete.
+- Every user job gets a row. For calibration, a small product usually has 15 or more rows and a typical SaaS 25 or more. If the map has fewer, write one line explaining why the product is small. Never invent rows to hit a number.
 
 ### 2.3 Gaps
 
@@ -394,7 +394,7 @@ Keep the shape of a result tied to the verb, not to the endpoint:
 | `delete` | `{"ok": true, "id": "prj_123"}` |
 | Action | `{"ok": true, "id": "dep_123", "status": "queued"}` |
 | Job | `{"id": "job_123", "status": "running", ...}` |
-| Bulk | `{"ok": false, "succeeded": 8, "failed": 2, "skipped": 0, "truncated": false, "failures": [{"id": "prj_9", "code": "conflict", "message": "..."}]}` |
+| Bulk | `{"ok": false, "code": "partial_success", "succeeded": 8, "failed": 2, "skipped": 0, "truncated": false, "failures": [{"id": "prj_9", "code": "conflict", "message": "..."}]}` |
 
 Rules:
 
@@ -460,11 +460,11 @@ Rules:
 
 ### 6.3 Error codes
 
-Use a small stable set in error envelopes and bulk results: `usage`, `auth_required`, `forbidden`, `not_found`, `conflict`, `validation`, `rate_limited`, `server_error`, `network_error`, `timeout`, `cancelled`, `confirmation_required`, `ambiguous_target`, `diagnostic_failed`, `partial_success`, `job_failed`. Agents branch on `code`, not on the message.
+Use a small stable set in error envelopes and bulk results: `usage`, `auth_required`, `forbidden`, `not_found`, `conflict`, `validation`, `rate_limited`, `server_error`, `network_error`, `timeout`, `cancelled`, `confirmation_required`, `ambiguous_target`, `diagnostic_failed`, `partial_success`, `job_failed`, `unexpected`. Agents branch on `code`, not on the message.
 
 | Code | Exit |
 |---|---|
-| `job_failed` | 1 |
+| `unexpected`, `job_failed` | 1 |
 | `usage` | 2 |
 | `auth_required` | 3 |
 | `forbidden` | 4 |
@@ -851,10 +851,12 @@ Legend: **[check]** means an automated check verifies it. **[review]** means a r
 
 A [check] item is verified by running the binary, inspecting repo and config files, driving a mock server, or reading CI output. No [check] item requires reading application source.
 
+When the API capability inventory in section 2.6 records a capability as unsupported, mark the dependent items N/A in `CLI.md` and cite the inventory row. N/A counts as a pass for the merge gate. This applies to M23 (idempotency), M24 (bulk), M26 (async jobs), M38 (update checks), and M44 (file transfer). Do not build a fake capability to satisfy a check.
+
 **Surface**
 
 - [ ] **M01** [check] [P0] `CLI.md` exists with a surface map, command tree, and open gaps.
-- [ ] **M02** [review] [P0] Every user-reachable capability has a cited source, a command, or a documented gap, and the map meets the minimum row count.
+- [ ] **M02** [review] [P0] Every user-reachable capability has a cited source, a command, or a documented gap, and every user job has a row.
 - [ ] **M03** [check] [P0] Every command name follows the grammar and CRUD vocabulary.
 - [ ] **M04** [review] [P0] The existing-CLI path (adopt, extend, rebuild) is recorded and followed.
 - [ ] **M05** [review] [P0] The API capability inventory is filled, including pagination, idempotency, async jobs, retries, versioning, tenancy, and limits.
@@ -867,17 +869,17 @@ A [check] item is verified by running the binary, inspecting repo and config fil
 - [ ] **M09** [check] [P0] `--version` prints semver only.
 - [ ] **M10** [check] [P0] Unknown commands and flags exit 2 with a suggestion.
 - [ ] **M11** [check] [P1] Shell completions exist for bash, zsh, and fish.
-- [ ] **M12** [review] [P0] Root help shows the resolved profile, base URL, org, project, and API version.
+- [ ] **M12** [review] [P0] When a profile is configured, root help shows the resolved profile, base URL, org, project, and API version.
 
 **Output**
 
 - [ ] **M13** [check] [P0] Every data command supports `--json` and emits one document.
 - [ ] **M14** [check] [P0] JSON uses one stable key convention, UTC timestamps, string IDs, and integer minor units for money.
-- [ ] **M15** [check] [P0] Lists include `has_more`, `next_cursor`, and `truncated`; `--limit`, `--cursor`, and `--all` work; empty results exit 0 with the envelope and `data: []`.
+- [ ] **M15** [check] [P0] Lists include `has_more`, `next_cursor`, and `truncated`; `--limit`, `--cursor`, and `--all` work; `--json` empty results exit 0 with the envelope and `data: []`.
 - [ ] **M16** [check] [P0] Lists return summaries; `get` returns the full object; `--full` exists.
 - [ ] **M17** [check] [P1] `--quiet` prints identifiers only.
 - [ ] **M18** [check] [P0] No ANSI codes when piped, when `--json`, or when `NO_COLOR` is set.
-- [ ] **M19** [check] [P0] Errors print to stderr with a code, message, hint, and the correct exit status.
+- [ ] **M19** [check] [P0] Every non-zero exit except 9 prints an error envelope to stderr with a code, message, hint, and matching exit status. Exit 9 reports partial success as a bulk result on stdout.
 - [ ] **M20** [check] [P0] `--dry-run --json` prints a structured request with secrets redacted.
 
 **Safety**
@@ -885,9 +887,9 @@ A [check] item is verified by running the binary, inspecting repo and config fil
 - [ ] **M21** [check] [P0] Destructive commands prompt in human TTY mode and exit 10 without `--yes` in machine mode or off a TTY.
 - [ ] **M22** [check] [P0] Destructive commands support `--dry-run` with redacted output.
 - [ ] **M23** [check] [P0] Writes send idempotency keys where the API supports them; retries never duplicate resources.
-- [ ] **M24** [check] [P0] Bulk writes print a result with counts, failures, and `truncated`, and exit 9 when any item failed or the cap skipped work.
+- [ ] **M24** [check] [P0] When bulk writes exist, they print a result with `code`, counts, failures, and `truncated`, and exit 9 when any item failed or the cap skipped work.
 - [ ] **M25** [check] [P0] `update` supports `--set` and `--unset`; no full object is required.
-- [ ] **M26** [check] [P0] Async commands expose a job, `--wait`, and a `wait` command, with a timeout that exits 8 and keeps the job ID.
+- [ ] **M26** [check] [P0] When async jobs exist, commands expose a job, `--wait`, and a `wait` command, with a timeout that exits 8 and keeps the job ID.
 - [ ] **M27** [check] [P0] Name and scope resolution exits 11 on ambiguity and never picks the first match.
 
 **Auth and config**
@@ -929,7 +931,7 @@ The CLI is done for merge when every P0 item passes. It is 1.0 when every P1 ite
 A first working CLI in one session looks like this:
 
 1. Read the repo and identify the API client, auth, and language.
-2. Fill `CLI.md` with 20 to 40 capabilities and mark the gaps.
+2. Fill `CLI.md` with one cited row per user job and mark the gaps.
 3. Write the command tree on one screen. Fix names until the pattern repeats.
 4. Scaffold from the stack template: config, auth, client, output, errors.
 5. Implement `auth status`, `whoami`, and one `list` command end to end against a real sandbox or a recorded live response.
