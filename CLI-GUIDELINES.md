@@ -531,7 +531,7 @@ An agent must know which product, org, and environment a command will act on bef
 - Register `--profile`, `--org`, `--project`, and `--base-url` once as global flags. Do not redeclare them per command.
 - When a profile is configured, root help shows the resolved profile, base URL, org, project, and API version.
 - `auth status` shows the same set, plus the user and token expiry.
-- `--dry-run` output and every error envelope include the resolved target, so an agent can see where a failed call was pointed.
+- When a profile is configured, `--dry-run` output and every error envelope include the resolved target, so an agent can see where a failed call was pointed.
 - Destructive confirmation repeats the profile, base URL, org, target name, and target ID.
 - `whoami` is the one-command check: user, org, profile, environment, token expiry.
 - When the target is ambiguous, exit 11 and list the choices. Never fall back to the first profile.
@@ -796,7 +796,7 @@ Every CLI repo carries `CLI.md` with the surface map, command tree, output shape
 |---|---|
 | Unit | Flag parsing, defaults, table formatter, JSON shaper, redaction, HTTP-to-exit mapping |
 | Contract | Each command against a mock server with recorded fixtures |
-| Golden | `--help` for every command, `schema --json`, and the five canonical task responses |
+| Golden | `--help` for every command, `schema --json` when shipped, and the five canonical task responses |
 | Integration | Real binary, non-TTY, env token, no prompts |
 | Smoke | Read-only run against staging in CI on a schedule |
 | Conformance | The skill's checker against the built binary |
@@ -913,7 +913,7 @@ When the API capability inventory in section 2.6 records a capability as unsuppo
 - [ ] **M39** [check] [P1] An installable artifact is built in CI with checksums and a documented install line.
 - [ ] **M40** [check] [P0] Tests cover parsing, formatting, redaction, exit codes, and HTTP failures.
 - [ ] **M41** [check] [P0] Golden snapshots cover help for every command and the five canonical tasks, plus `schema --json` when M46 ships. Not every JSON response.
-- [ ] **M42** [check] [P0] The conformance checker passes every [check] item.
+- [ ] **M42** [check] [P0] The conformance checker passes every applicable [check] item. All P0 items block merge; P1 failures are reported as deferred and block only the 1.0 gate.
 - [ ] **M43** [check] [P0] HTTPS is enforced; proxy variables work; no `--insecure` flag exists.
 - [ ] **M44** [check] [P0] Downloads write atomically; uploads stream.
 
