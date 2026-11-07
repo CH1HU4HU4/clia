@@ -368,6 +368,7 @@ Pagination adapter rules:
 - The normalized shape stays the same for both models. Agents never see the transport model.
 - Help names the underlying model in one line: `Pagination: cursor` or `Pagination: page`.
 - A command never hand-rolls paging. It calls the iterator.
+- An API that returns everything in one response still uses the shape: `has_more: false`, `next_cursor: null`, `truncated: false`.
 
 ### 5.5 Streaming
 
@@ -514,7 +515,7 @@ Project config never supplies a credential. It holds only non-secret context: pr
 - `--base-url` and `<TOOL>_BASE_URL` support self-hosted and staging environments.
 - Pin the API version in config, expose `--api-version`, and send it on every request in the header the API expects. An unsupported version exits 6 with the supported versions in the message.
 - Machine mode can be a setting, not only a flag: `output = "json"` in config or `<TOOL>_OUTPUT=json` applies `--json` behavior, `--no-input`, and no color to every data command. A per-command flag cannot turn prompts back on.
-- Validate credentials only in commands that need them. `--help` and `--version` never require auth and never touch the network. Root help may read non-secret local context (profile, base URL, org) to show the target, and must work when config is missing.
+- Validate credentials only in commands that need them. `--help` and `--version` never require auth and never touch the network. Root help may read non-secret local context (profile, base URL, org, project, API version) to show the target, and must work when config is missing.
 
 ### 7.4 Secrets
 
@@ -595,6 +596,7 @@ The structured form lets an agent inspect a write without parsing prose. Secrets
 - Print a summary: succeeded, failed, skipped.
 - Exit 9 when any item fails or the cap skips work. Exit 9 means partial success, never a plain error, and the result reports counts and failures.
 - A bulk write that hits its cap exits 9 with `truncated: true` and the count left.
+- A bulk result with a non-zero exit still prints its full section 5.7 shape on stdout. The error envelope on stderr is for failures that produced no result.
 
 ### 8.6 Asynchronous jobs
 
@@ -630,7 +632,7 @@ Some writes return a job instead of a finished resource. Handle them with one pa
 
 ### 10.1 Root help
 
-Show usage, a two-line description, command groups, global flags, three examples, and a docs URL. Keep it under 60 lines. When a profile is configured, add one line with the active profile, base URL, org, and API version, for example `Profile: default (https://api.acme.com, org acme, API 2026-01-01)`.
+Show usage, a two-line description, command groups, global flags, three examples, and a docs URL. Keep it under 60 lines. When a profile is configured, add one line with the resolved target from section 7.5, for example `Profile: default (https://api.acme.com, org acme, project web, API 2026-01-01)`.
 
 ### 10.2 Command help
 
@@ -851,7 +853,7 @@ Legend: **[check]** means an automated check verifies it. **[review]** means a r
 
 A [check] item is verified by running the binary, inspecting repo and config files, driving a mock server, or reading CI output. No [check] item requires reading application source.
 
-When the API capability inventory in section 2.6 records a capability as unsupported, mark the dependent items N/A in `CLI.md` and cite the inventory row. N/A counts as a pass for the merge gate. This applies to M23 (idempotency keys), M24 (bulk writes), M26 (async jobs), and M44 (file transfer). Scope N/A to the unsupported half: M23's rule against duplicate retries always applies, and M44's atomic download rule applies whenever downloads exist. Update checks (M38) are a CLI feature, not an API capability, so they are never N/A. Do not build a fake capability to satisfy a check.
+When the API capability inventory in section 2.6 records a capability as unsupported, mark the dependent items N/A in `CLI.md` and cite the inventory row. N/A counts as a pass for the merge gate. This applies to M23 (idempotency keys), M26 (async jobs), and M44 (file transfer). Scope N/A to the unsupported half: M23's rule against duplicate retries always applies, and M44's atomic download rule applies whenever downloads exist. Update checks (M38) are a CLI feature, not an API capability, so they are never N/A. Do not build a fake capability to satisfy a check.
 
 **Surface**
 
@@ -879,7 +881,7 @@ When the API capability inventory in section 2.6 records a capability as unsuppo
 - [ ] **M16** [check] [P0] Lists return summaries; `get` returns the full object; `--full` exists.
 - [ ] **M17** [check] [P1] `--quiet` prints identifiers only.
 - [ ] **M18** [check] [P0] No ANSI codes when piped, when `--json`, or when `NO_COLOR` is set.
-- [ ] **M19** [check] [P0] Every non-zero exit except 9 prints an error on stderr with a code, message, hint, and matching exit status. Human mode uses the section 6.1 text format; `--json` uses the JSON envelope. Exit 9 reports partial success as a bulk result on stdout. Exit 130 needs an envelope only when the CLI traps the interrupt.
+- [ ] **M19** [check] [P0] Every non-zero exit except 9 prints an error on stderr with a message, hint, and matching exit status. Human mode uses the section 6.1 text format, where the exit status is the code; `--json` uses the JSON envelope with an explicit `code`. Exit 9 reports partial success as a bulk result on stdout. Exit 130 needs an envelope only when the CLI traps the interrupt.
 - [ ] **M20** [check] [P0] `--dry-run --json` prints a structured request with secrets redacted.
 
 **Safety**
@@ -905,12 +907,12 @@ When the API capability inventory in section 2.6 records a capability as unsuppo
 
 **Operations**
 
-- [ ] **M36** [review] [P0] Context resolution is centralized in one module, and the resolved profile, base URL, org, project, and API version appear consistently in help, status, dry-run, and errors.
+- [ ] **M36** [review] [P0] Context resolution is centralized in one module. When a profile is configured, the resolved profile, base URL, org, project, and API version appear consistently in help, status, dry-run, and errors.
 - [ ] **M37** [check] [P0] Startup meets the budget for the stack.
 - [ ] **M38** [check] [P1] Update checks are cached and can be disabled.
 - [ ] **M39** [check] [P1] An installable artifact is built in CI with checksums and a documented install line.
 - [ ] **M40** [check] [P0] Tests cover parsing, formatting, redaction, exit codes, and HTTP failures.
-- [ ] **M41** [check] [P0] Golden snapshots cover help for every command, `schema --json`, and the five canonical tasks. Not every JSON response.
+- [ ] **M41** [check] [P0] Golden snapshots cover help for every command and the five canonical tasks, plus `schema --json` when M46 ships. Not every JSON response.
 - [ ] **M42** [check] [P0] The conformance checker passes every [check] item.
 - [ ] **M43** [check] [P0] HTTPS is enforced; proxy variables work; no `--insecure` flag exists.
 - [ ] **M44** [check] [P0] Downloads write atomically; uploads stream.
