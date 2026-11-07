@@ -52,7 +52,7 @@ CLIA is a skill, not a generator. The agent reads it, inspects the product, desi
 | `references/surface-map.md` | How to inventory product capabilities and fill the map |
 | `references/stacks/` | One setup guide per language: TypeScript, Go, Python |
 | `templates/` | Runnable skeletons with auth, config, output, errors, and one working command |
-| `scripts/conformance` | Checks a produced CLI against the MUST rules |
+| `scripts/conformance` | Checks a produced CLI against the [check] rules by ID |
 | `evals/` | Fixture products with expected outcomes for testing the skill |
 
 The skill targets harnesses that support folder-based skills (OpenCode, Claude Code, Codex). It stays portable by using plain markdown and a single `SKILL.md` entry point. `SKILL.md` stays under 300 lines and loads references per phase, so the agent reads the surface map before the stack guide and the guidelines only when it designs or checks commands.
@@ -86,13 +86,13 @@ A product-specific command line tool, named after the product, that:
 | Make output machine-usable | 100% of commands support `--json` with a stable shape |
 | Make help sufficient | An agent completes 5 canonical tasks from `--help` alone |
 | Keep the CLI lean | Startup p95 under 150 ms for Node, 50 ms for native binaries |
-| Catch drift | Conformance checker passes 100% of MUST rules in CI |
+| Catch drift | Conformance checker passes 100% of [check] rules in CI |
 
 ### 5.2 Non-goals
 
 - A GUI or TUI for the product
 - An MCP server (a CLI and an MCP server can share a client, but CLIA builds the CLI)
-- Hosting, deployment, or package registry publishing for the product
+- Hosting or deployment, and publishing the CLI to a public registry or marketplace. Build and release workflow files are in scope; the publish decision is not.
 - Replacing the product API or SDK
 - Auto-generating a CLI from OpenAPI with no design pass
 - Supporting every language in v1. TypeScript first, then Go and Python
@@ -107,26 +107,26 @@ The skill walks the agent through six phases. Each phase has an exit criterion, 
 | 0. Preflight | Repo, API docs, existing client | Stack and auth decision | The agent can name the language, package manager, API style, and auth method |
 | 1. Surface map | UI nav, routes, OpenAPI, SDK | `CLI.md` surface table | ≥ 90% of capabilities mapped, gaps listed |
 | 2. Design | Surface map | Command tree, output shapes, safety classes | Tree fits on one screen, every command has one job |
-| 3. Scaffold | Design, stack guide | Runnable skeleton with one vertical slice | `--version`, `--help`, and one real command work |
+| 3. Scaffold | Design, stack guide | Runnable skeleton with one live vertical slice | `--version`, `--help`, one live command, and mapped 401/404/429 work |
 | 4. Implement | Command tree | Every data command with help, JSON, tests | Conformance checker passes |
 | 5. Verify | CLI | Golden snapshots, smoke script, agent run | 5 canonical tasks pass non-interactively |
-| 6. Hand off | Verified CLI | README, reference, agent snippet, changelog | A new user reaches a result in 3 commands |
+| 6. Hand off | Verified CLI | README, reference, agent snippet, changelog, CI workflow, release script | A new user reaches a result in 3 commands and CI runs the full suite |
 
 ### 6.1 Phase detail
 
-**Preflight.** Read the README, the API client, the route definitions, and the auth code. Find the existing CLI or scripts if any. Decide the language from what the repo already uses. Record the decision in `CLI.md`.
+**Preflight.** Read the README, the API client, the route definitions, and the auth code. Find the existing CLI or scripts if any, then choose adopt, extend, or rebuild. The default is extend. Decide the language from what the repo already uses and record the decision in `CLI.md`.
 
 **Surface map.** Enumerate capabilities from two directions: the UI navigation and the API. Every row names the capability, the API call, the risk class (read, write, destructive), and the command that will cover it. Gaps are first-class: if the UI uses a private endpoint, write it down and either use a documented alternative or leave the capability out with a note.
 
 **Design.** Name the tool after the product binary. Group commands by resource. Decide the output shape for each command, the exit code map, and which commands need `--dry-run`, `--yes`, or `--wait`. The whole tree should fit on one screen.
 
-**Scaffold.** Start from the stack template. Wire config, auth, the HTTP client, the output module, and the error mapper before writing commands. Implement one vertical slice end to end, usually `<tool> <resource> list`, so the shape is proven.
+**Scaffold.** Start from the stack template. Wire config, auth, the HTTP client, the output module, and the error mapper before writing commands. Implement one vertical slice end to end against a real sandbox or a recorded live response, usually `auth status` plus `<tool> <resource> list`. The slice proves auth, the version header, pagination, and the 401/404/429 mapping. Mock-only success does not exit this phase.
 
 **Implement.** Reads first, then writes, then destructive commands, then streaming and bulk. Each command gets `--help`, `--json`, tests, and a `--dry-run` if it changes state.
 
-**Verify.** Run the conformance checker, golden snapshots for help and JSON, a non-TTY smoke script with a test token, and the five canonical tasks. Fix failures before handoff.
+**Verify.** Run the conformance checker, golden snapshots for help and the canonical JSON, a non-TTY smoke script with a test token, and the five canonical tasks. Fix failures before handoff.
 
-**Hand off.** README with install, auth, and five examples. Generated command reference. A short snippet for `AGENTS.md` or `CLAUDE.md` telling future agents to use the CLI and prefer `--json`.
+**Hand off.** README with install, auth, and five examples. Generated command reference. A short snippet for `AGENTS.md` or `CLAUDE.md` telling future agents to use the CLI and prefer `--json`. A CI workflow that runs contract tests, golden snapshots, and the conformance checker. A release script that builds a checksummed artifact for the target platform.
 
 ### 6.2 Definition of ready
 
@@ -209,7 +209,7 @@ Each fixture ships seeded defects: a prompt in non-TTY, a missing `--json`, a si
 | Time to first working command | < 30 min | Timed agent run on a fixture repo |
 | Time to add one command | < 15 min | Timed run after the first vertical slice |
 | Surface coverage | ≥ 90% | Surface map rows with a command |
-| Conformance | 100% of MUST rules | Checker output |
+| Conformance | 100% of [check] rules | Checker output |
 | Rubric score | ≥ 90/100 | Independent review with `CLI-GUIDELINES.md` section 20 |
 | Canonical agent tasks | 5 of 5 | Non-TTY scripted run using only `--help` and `--json` |
 | Interactive prompts in non-TTY | 0 | Test suite scans stderr and process state |
@@ -265,7 +265,7 @@ The skill itself is not built in this change.
 3. How should the skill handle products with several APIs (core, billing, admin) in one repo: one binary with command groups, or several binaries?
 4. Should the conformance checker be language-agnostic (run the built CLI) or inspect source too?
 5. Do we standardize JSON on `snake_case` or inherit the product API convention? Current draft inherits, with one convention per tool.
-6. Is `--fields` worth requiring in v1, or is it an optimization for later?
+6. Should the checker read a generated `rules.md` from the section 17 checklist, or parse `CLI-GUIDELINES.md` directly? A generated file avoids drift but adds a build step.
 7. How do we version the guidelines: independent semver, or tied to skill releases?
 8. Should the skill generate an MCP server from the same command tree as a follow-on, or stay CLI-only?
 
@@ -277,7 +277,7 @@ The skill itself is not built in this change.
 - **Efficient:** one request per command where possible, pagination that stops, output sized for the task.
 - **Effective:** the command does what its name says, fails loudly, and leaves state consistent.
 - **Surface map:** table of product capabilities, API calls, risk classes, and the commands that cover them.
-- **Conformance checker:** script that runs the built CLI and checks the MUST rules in `CLI-GUIDELINES.md`.
+- **Conformance checker:** script that runs the built CLI and checks the [check] rules in `CLI-GUIDELINES.md` section 17.
 
 ### 12.2 Related documents
 
