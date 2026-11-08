@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CLIA — Prime your product for the agentic web</title>
+  <meta name="description" content="CLIA is an agent skill that builds the CLI for your SaaS. Map the surface, scaffold, and verify with one conformance checker.">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:title" content="CLIA — Prime your product for the agentic web">
+  <meta property="og:description" content="An agent skill that builds the CLI for your SaaS.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cliaskill.vercel.app/">
+  <link rel="canonical" href="https://cliaskill.vercel.app/">
+  <link rel="icon" href="assets/clia-logo-icon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/landing.css">
+</head>
+<body>
+  <div class="stage" aria-hidden="true">
+    <span class="float f-opencode"><span class="tile b-opencode"></span></span>
+    <span class="float f-claude"><span class="tile b-claude"></span></span>
+    <span class="float f-cursor"><span class="tile b-cursor"></span></span>
+    <span class="float f-antigravity"><span class="tile b-antigravity"></span></span>
+    <span class="float f-openai"><span class="tile b-openai"></span></span>
+    <span class="float f-copilot"><span class="tile b-copilot"></span></span>
+  </div>
+
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="https://github.com/CH1HU4HU4/clia" aria-label="CLIA on GitHub">
+        <img class="brand-mark" src="assets/clia-logo-icon.png" alt="" width="32" height="32">
+        <span class="brand-name">CLIA</span>
+      </a>
+      <nav class="nav" aria-label="Project">
+        <button class="nav-link" id="open-prompt-top" type="button">Get the prompt</button>
+        <a class="nav-link nav-github" href="https://github.com/CH1HU4HU4/clia">
+          <svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+          GitHub
+        </a>
+      </nav>
+    </header>
+
+    <main class="hero">
+      <img class="logo" src="assets/clia-logo.jpg" alt="CLIA" width="800" height="800">
+
+      <h1 id="hero-title">
+        <span class="line"><span>PRIME YOUR PRODUCT</span></span>
+        <span class="line"><span>FOR THE AGENTIC WEB</span></span>
+      </h1>
+
+      <p class="lede">CLIA is an agent skill that builds the CLI for your SaaS. Map the surface, scaffold, and verify with one conformance checker.</p>
+
+      <div class="actions">
+        <button class="cta" id="open-prompt" type="button">
+          <svg class="cta-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="8" y="8" width="12" height="12" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M16 8V5.6A1.6 1.6 0 0 0 14.4 4H5.6A1.6 1.6 0 0 0 4 5.6v8.8A1.6 1.6 0 0 0 5.6 16H8" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+          Get the prompt
+        </button>
+        <a class="manual" href="https://github.com/CH1HU4HU4/clia/blob/main/CLI-GUIDELINES.md">
+          Read the CLI manual
+          <svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
+      <p class="works">Installs into OpenCode, Claude Code, and Codex.</p>
+      <noscript><p class="works">Enable JavaScript to open the prompt, or <a href="https://github.com/CH1HU4HU4/clia#install-as-a-skill">copy it from the repository</a>.</p></noscript>
+    </main>
+  </div>
+
+  <dialog class="dialog" id="prompt-dialog" aria-labelledby="dialog-title" data-ui>
+    <div class="dialog-head">
+      <div>
+        <h2 id="dialog-title">Give this to your agent</h2>
+        <p class="dialog-sub">Clone the skill, then hand over the job.</p>
+      </div>
+      <button class="close" id="close-dialog" type="button" aria-label="Close">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Prompt">
+      <button class="tab" type="button" role="tab" id="tab-build" aria-selected="true" aria-controls="prompt-panel" tabindex="0">Build</button>
+      <button class="tab" type="button" role="tab" id="tab-extend" aria-selected="false" aria-controls="prompt-panel" tabindex="-1">Extend</button>
+      <button class="tab" type="button" role="tab" id="tab-audit" aria-selected="false" aria-controls="prompt-panel" tabindex="-1">Audit</button>
+    </div>
+
+    <pre class="prompt" id="prompt-panel" role="tabpanel" aria-labelledby="tab-build" tabindex="0"><code id="prompt-text">Clone https://github.com/CH1HU4HU4/clia into your skills folder as clia. Read SKILL.md, then build a CLI for this repo: map 90%+ of the product surface in CLI.md, scaffold from the matching template, implement reads before writes. No TTY prompts, stable --json, real exit codes. Run scripts/conformance and report every gap.</code></pre>
+
+    <div class="dialog-foot">
+      <p class="status" id="copy-status" aria-live="polite">OpenCode, Claude Code, Codex</p>
+      <button class="cta cta-small" id="copy" type="button">Copy prompt</button>
+    </div>
+  </dialog>
+
+  <script src="assets/landing.js"></script>
+</body>
+</html>

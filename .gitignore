@@ -5,3 +5,7 @@ node_modules/
 templates/go/bin/acme
 templates/*/dist/
 *.tgz
+.vercel
+.env*
+
+.taste-skill/
