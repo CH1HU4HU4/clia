@@ -1,6 +1,7 @@
 ---
 name: clia
 description: Build or extend a CLI for this SaaS product. Use when the repo contains a SaaS app with an HTTP API and the user asks for a CLI, a command line tool, a terminal interface, or agent access to the product. Do not use for generic shell scripting or MCP server requests.
+license: MIT
 ---
 
 # CLIA: build the product CLI

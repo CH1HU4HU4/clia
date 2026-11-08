@@ -4,10 +4,10 @@
 
 | | |
 |---|---|
-| Status | Draft |
-| Version | 0.2 |
+| Status | Released |
+| Version | 1.0 |
 | Owner | Omer |
-| Last updated | 2026-11-07 |
+| Last updated | 2026-11-08 |
 | Repo | `CH1HU4HU4/clia` |
 
 ## 1. Summary
@@ -221,24 +221,24 @@ Each fixture ships seeded defects: a prompt in non-TTY, a missing `--json`, a si
 
 ## 9. Scope and milestones
 
-### 9.1 This change
+### 9.1 Phase 0 (historical)
 
-Phase 0: the two source documents.
+Phase 0 shipped the two source documents:
 
 - `PRD.md`: product definition, users, workflow, requirements, metrics.
-- `CLI-GUIDELINES.md`: the manual the skill will carry.
+- `CLI-GUIDELINES.md`: the manual the skill carries.
 
-The skill itself is not built in this change.
+The skill itself was not built in that change. It shipped in 1.0.
 
 ### 9.2 Roadmap
 
-| Phase | Deliverable | Done when |
-|---|---|---|
-| 0 | PRD and guidelines | Both docs reviewed and merged |
-| 1 | `SKILL.md`, surface map reference, decision tables | An agent can follow the skill by hand on a real repo |
-| 2 | TypeScript template, then Go and Python | Each template builds and passes the checker |
-| 3 | Conformance checker and eval fixtures | Checker catches seeded violations; 3 fixtures pass |
-| 4 | Hardening and v1.0 | 5 canonical tasks pass on every fixture |
+| Phase | Deliverable | Done when | Status |
+|---|---|---|---|
+| 0 | PRD and guidelines | Both docs reviewed and merged | Done |
+| 1 | `SKILL.md`, surface map reference, decision tables | An agent can follow the skill by hand on a real repo | Done |
+| 2 | TypeScript template, then Go and Python | Each template builds and passes the checker | Done |
+| 3 | Conformance checker and eval fixtures | Checker catches seeded violations; 3 fixtures pass | Done |
+| 4 | Hardening and v1.0 | 5 canonical tasks pass on every fixture | Done — agent-run cases recorded in `evals/runs/2026-11-08.md` |
 
 ### 9.3 Out of scope for v1
 

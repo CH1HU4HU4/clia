@@ -39,6 +39,9 @@ the checker catches it. The eval grows with the skill.
 
 ## Agent-run cases
 
+Run records live in `runs/`; the latest is `runs/2026-11-08.md` (both PASS).
+Re-run these after any change to `SKILL.md`, `CLI-GUIDELINES.md`, or the checker.
+
 ### Existing CLI
 
 `fixtures/existing-cli/` ships a human-only CLI with interactive login and table

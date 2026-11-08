@@ -91,4 +91,8 @@ Requirements for the full suite: Python 3.9+, Node 22.6+, Go 1.22+.
 - [CLI-GUIDELINES.md](CLI-GUIDELINES.md): the normative manual.
 - [SKILL.md](SKILL.md): the workflow the agent follows.
 
+## License
+
+MIT. See [LICENSE](LICENSE).
+
 Created in [T3 Code](https://t3.codes).
