@@ -22,7 +22,7 @@
   "task4_create_dry": {
     "code": 0,
     "stderr": "",
-    "stdout": "{\"method\":\"POST\",\"url\":\"{base_url}/v1/projects\",\"headers\":{\"accept\":\"application/json\",\"user-agent\":\"acme/1.0.0 (darwin; arm64)\",\"x-api-version\":\"2026-01-01\",\"authorization\":\"****\",\"content-type\":\"application/json\",\"idempotency-key\":\"{value}\"},\"body\":{\"name\":\"clia-golden\"},\"target\":{\"profile\":\"default\",\"base_url\":\"{base_url}\",\"org\":\"acme\",\"project\":\"\",\"api_version\":\"2026-01-01\"}}\n"
+    "stdout": "{\"method\":\"POST\",\"url\":\"{base_url}/v1/projects\",\"headers\":{\"accept\":\"application/json\",\"user-agent\":\"acme/1.0.0 ({platform}; {arch})\",\"x-api-version\":\"2026-01-01\",\"authorization\":\"****\",\"content-type\":\"application/json\",\"idempotency-key\":\"{value}\"},\"body\":{\"name\":\"clia-golden\"},\"target\":{\"profile\":\"default\",\"base_url\":\"{base_url}\",\"org\":\"acme\",\"project\":\"\",\"api_version\":\"2026-01-01\"}}\n"
   },
   "task5_delete_refused": {
     "code": 10,

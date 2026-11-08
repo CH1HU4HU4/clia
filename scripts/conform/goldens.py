@@ -9,6 +9,7 @@ import re
 UUID = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b")
 REQUEST_ID = re.compile(r"req_[0-9a-zA-Z]+")
 EPOCH = re.compile(r'"created_at":"[^"]+"')
+USER_AGENT = re.compile(r'"user-agent":"([^"]*?) \([^)]*\)"')
 
 
 def normalize(ctx, text):
@@ -22,6 +23,7 @@ def normalize(ctx, text):
     out = out.replace(ctx.home, "{home}")
     out = UUID.sub("{uuid}", out)
     out = REQUEST_ID.sub("req_{id}", out)
+    out = USER_AGENT.sub(r'"user-agent":"\1 ({platform}; {arch})"', out)
     out = re.sub(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", "{timestamp}", out)
     out = re.sub(r'"(idempotency-key|expires_at|created_at|updated_at)":"[^"]*"',
                  r'"\1":"{value}"', out)
