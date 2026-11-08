@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CLIA — Prime your product for the agentic web</title>
-  <meta name="description" content="CLIA is an agent skill that builds the CLI for your SaaS. Map the surface, scaffold, and verify with one conformance checker.">
+  <meta name="description" content="CLIA is an agent skill that turns your SaaS into a CLI agents can run. Install once, then drive it with /clia commands.">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="color-scheme" content="dark">
   <meta property="og:title" content="CLIA — Prime your product for the agentic web">
-  <meta property="og:description" content="An agent skill that builds the CLI for your SaaS.">
+  <meta property="og:description" content="An agent skill that turns your SaaS into a CLI agents can run.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://cliaskill.vercel.app/">
   <link rel="canonical" href="https://cliaskill.vercel.app/">
@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/landing.css">
 </head>
-<body>
+<body id="top">
   <div class="stage" aria-hidden="true">
     <span class="float f-opencode"><span class="tile b-opencode"></span></span>
     <span class="float f-claude"><span class="tile b-claude"></span></span>
@@ -35,7 +35,6 @@
         <span class="brand-name">CLIA</span>
       </a>
       <nav class="nav" aria-label="Project">
-        <button class="nav-link" id="open-prompt-top" type="button">Get the prompt</button>
         <a class="nav-link nav-github" href="https://github.com/CH1HU4HU4/clia">
           <svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
           GitHub
@@ -51,51 +50,102 @@
         <span class="line"><span>FOR THE AGENTIC WEB</span></span>
       </h1>
 
-      <p class="lede">CLIA is an agent skill that builds the CLI for your SaaS. Map the surface, scaffold, and verify with one conformance checker.</p>
+      <p class="lede">Agents speak shell. Your product speaks HTTP. CLIA builds the CLI in between.</p>
 
-      <div class="actions">
-        <button class="cta" id="open-prompt" type="button">
-          <svg class="cta-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="8" y="8" width="12" height="12" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M16 8V5.6A1.6 1.6 0 0 0 14.4 4H5.6A1.6 1.6 0 0 0 4 5.6v8.8A1.6 1.6 0 0 0 5.6 16H8" fill="none" stroke="currentColor" stroke-width="1.8"/>
-          </svg>
-          Get the prompt
-        </button>
-        <a class="manual" href="https://github.com/CH1HU4HU4/clia/blob/main/CLI-GUIDELINES.md">
-          Read the CLI manual
-          <svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
+      <div class="prompt-box" id="prompt">
+        <pre class="prompt-text" id="install-prompt"><code>Install the CLIA skill from github.com/CH1HU4HU4/clia into your skills folder as clia. Read SKILL.md, then stop and wait for my first <span class="accent">/clia</span> command.</code></pre>
+        <div class="prompt-foot">
+          <p class="status" id="copy-status">OpenCode, Claude Code, Codex</p>
+          <button class="cta cta-small" id="copy-install" type="button">Copy install prompt</button>
+        </div>
       </div>
 
-      <p class="works">Installs into OpenCode, Claude Code, and Codex.</p>
-      <noscript><p class="works">Enable JavaScript to open the prompt, or <a href="https://github.com/CH1HU4HU4/clia#install-as-a-skill">copy it from the repository</a>.</p></noscript>
+      <a class="manual" href="https://github.com/CH1HU4HU4/clia/blob/main/CLI-GUIDELINES.md">
+        Read the CLI manual
+        <svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <noscript><p class="works">Enable JavaScript to copy the prompt, or <a href="https://github.com/CH1HU4HU4/clia#install-as-a-skill">copy it from the repository</a>.</p></noscript>
     </main>
+
+    <section class="section" id="why" aria-labelledby="why-title">
+      <div class="inner why-inner">
+        <div class="why-lead">
+          <h2 id="why-title">An API is not an interface.</h2>
+          <p class="body">Agents don't open your dashboard. They run commands, read the output, and retry when something fails. Without a CLI, they guess at endpoints, auth, and pagination, and fail quietly.</p>
+          <p class="body">Docs and OpenAPI specs describe the shape. They don't give an agent a command it can run, retry, or verify.</p>
+        </div>
+
+        <div class="why-points">
+          <div class="point">
+            <h3>Agents speak shell</h3>
+            <p>A command line is the one interface every coding agent can already drive. No SDK, no docs crawl, no browser.</p>
+          </div>
+          <div class="point">
+            <h3>Mapped before written</h3>
+            <p>Reads, writes, auth, pagination, and errors are planned in CLI.md before code, so nothing is improvised at runtime.</p>
+          </div>
+          <div class="point">
+            <h3>Proven before shipped</h3>
+            <p>No TTY prompts, stable --json, real exit codes, and dry runs on writes. The conformance checker proves it before an agent trusts it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="prompts" aria-labelledby="prompts-title">
+      <div class="inner">
+        <div class="asks-head">
+          <h2 id="prompts-title">Every request is a command.</h2>
+          <p class="body">The skill installs once and stays in your agent's skill folder. After that, every request is a command, not a conversation.</p>
+        </div>
+
+        <div class="asks">
+          <button class="ask" type="button" data-copy="/clia build a CLI for this repo">
+            <code class="ask-cmd"><span class="accent">/clia</span> build a CLI for this repo</code>
+            <span class="ask-desc">Map the surface and scaffold the command tree.</span>
+            <span class="ask-copy" aria-hidden="true">Copy</span>
+          </button>
+          <button class="ask" type="button" data-copy="/clia extend it with a projects command">
+            <code class="ask-cmd"><span class="accent">/clia</span> extend it with a projects command</code>
+            <span class="ask-desc">Add commands without breaking what already works.</span>
+            <span class="ask-copy" aria-hidden="true">Copy</span>
+          </button>
+          <button class="ask" type="button" data-copy="/clia audit our CLI against the guidelines">
+            <code class="ask-cmd"><span class="accent">/clia</span> audit our CLI against the guidelines</code>
+            <span class="ask-desc">Rank every gap P0 to P2 with the smallest fix.</span>
+            <span class="ask-copy" aria-hidden="true">Copy</span>
+          </button>
+          <button class="ask" type="button" data-copy="/clia add --json to every command">
+            <code class="ask-cmd"><span class="accent">/clia</span> add --json to every command</code>
+            <span class="ask-desc">Make the output stable enough for an agent to parse.</span>
+            <span class="ask-copy" aria-hidden="true">Copy</span>
+          </button>
+          <button class="ask" type="button" data-copy="/clia map what agents can't reach yet">
+            <code class="ask-cmd"><span class="accent">/clia</span> map what agents can't reach yet</code>
+            <span class="ask-desc">Find uncovered endpoints and draft the commands.</span>
+            <span class="ask-copy" aria-hidden="true">Copy</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <a class="brand footer-brand" href="#top" aria-label="Back to top">
+          <img class="brand-mark" src="assets/clia-logo-icon.png" alt="" width="32" height="32">
+          <span class="brand-name">CLIA</span>
+        </a>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="https://github.com/CH1HU4HU4/clia">GitHub</a>
+          <a href="https://github.com/CH1HU4HU4/clia/blob/main/CLI-GUIDELINES.md">CLI manual</a>
+          <a href="#prompt">Install prompt</a>
+        </nav>
+      </div>
+    </footer>
   </div>
 
-  <dialog class="dialog" id="prompt-dialog" aria-labelledby="dialog-title" data-ui>
-    <div class="dialog-head">
-      <div>
-        <h2 id="dialog-title">Give this to your agent</h2>
-        <p class="dialog-sub">Clone the skill, then hand over the job.</p>
-      </div>
-      <button class="close" id="close-dialog" type="button" aria-label="Close">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-      </button>
-    </div>
-
-    <div class="tabs" role="tablist" aria-label="Prompt">
-      <button class="tab" type="button" role="tab" id="tab-build" aria-selected="true" aria-controls="prompt-panel" tabindex="0">Build</button>
-      <button class="tab" type="button" role="tab" id="tab-extend" aria-selected="false" aria-controls="prompt-panel" tabindex="-1">Extend</button>
-      <button class="tab" type="button" role="tab" id="tab-audit" aria-selected="false" aria-controls="prompt-panel" tabindex="-1">Audit</button>
-    </div>
-
-    <pre class="prompt" id="prompt-panel" role="tabpanel" aria-labelledby="tab-build" tabindex="0"><code id="prompt-text">Clone https://github.com/CH1HU4HU4/clia into your skills folder as clia. Read SKILL.md, then build a CLI for this repo: map 90%+ of the product surface in CLI.md, scaffold from the matching template, implement reads before writes. No TTY prompts, stable --json, real exit codes. Run scripts/conformance and report every gap.</code></pre>
-
-    <div class="dialog-foot">
-      <p class="status" id="copy-status" aria-live="polite">OpenCode, Claude Code, Codex</p>
-      <button class="cta cta-small" id="copy" type="button">Copy prompt</button>
-    </div>
-  </dialog>
+  <p class="sr-only" id="copy-live" role="status" aria-live="polite"></p>
 
   <script src="assets/landing.js"></script>
 </body>

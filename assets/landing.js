@@ -1,167 +1,28 @@
 (function () {
   "use strict";
 
-  var prompts = {
-    build:
-      "Clone https://github.com/CH1HU4HU4/clia into your skills folder as clia. Read SKILL.md, then build a CLI for this repo: map 90%+ of the product surface in CLI.md, scaffold from the matching template, implement reads before writes. No TTY prompts, stable --json, real exit codes. Run scripts/conformance and report every gap.",
-    extend:
-      "Clone https://github.com/CH1HU4HU4/clia into your skills folder as clia. Read SKILL.md, then audit this repo's existing CLI against CLI-GUIDELINES.md and extend it without breaking what works. Fill surface gaps, remove TTY-only flows, add --json and --dry-run, map every error to a real exit code. Run scripts/conformance and report what remains.",
-    audit:
-      "Clone https://github.com/CH1HU4HU4/clia into your skills folder as clia. Read SKILL.md, then audit this repo's CLI against CLI-GUIDELINES.md without changing code. Report surface coverage, non-TTY behavior, JSON stability, exit codes, help quality, write safety, and startup latency. Rank P0/P1/P2 with file references and the smallest fix for each."
-  };
-
-  var dialog = document.getElementById("prompt-dialog");
-  var openers = [
-    document.getElementById("open-prompt"),
-    document.getElementById("open-prompt-top")
-  ].filter(Boolean);
-  var closeButton = document.getElementById("close-dialog");
-  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
-  var panel = document.getElementById("prompt-panel");
-  var promptText = document.getElementById("prompt-text");
-  var copyButton = document.getElementById("copy");
-  var status = document.getElementById("copy-status");
-  var defaultStatus = status ? status.textContent : "";
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var resetTimer = 0;
-  var lastTrigger = null;
+  var live = document.getElementById("copy-live");
 
-  function selectTab(next) {
-    var key = { "tab-build": "build", "tab-extend": "extend", "tab-audit": "audit" }[next.id] || "build";
-
-    tabs.forEach(function (tab) {
-      var active = tab === next;
-      tab.setAttribute("aria-selected", active ? "true" : "false");
-      tab.tabIndex = active ? 0 : -1;
-    });
-
-    panel.setAttribute("aria-labelledby", next.id);
-    promptText.textContent = prompts[key];
-    panel.scrollTop = 0;
-
-    if (status) {
-      status.textContent = defaultStatus;
+  function announce(message) {
+    if (!live) {
+      return;
     }
-
-    if (!reduceMotion && panel.animate) {
-      panel.animate(
-        [{ opacity: 0.35 }, { opacity: 1 }],
-        { duration: 180, easing: "ease-out" }
-      );
-    }
-  }
-
-  tabs.forEach(function (tab) {
-    tab.addEventListener("click", function () {
-      selectTab(tab);
-    });
-
-    tab.addEventListener("keydown", function (event) {
-      var index = tabs.indexOf(tab);
-      var next = null;
-
-      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-        next = tabs[(index + 1) % tabs.length];
-      } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-        next = tabs[(index - 1 + tabs.length) % tabs.length];
-      } else if (event.key === "Home") {
-        next = tabs[0];
-      } else if (event.key === "End") {
-        next = tabs[tabs.length - 1];
-      }
-
-      if (next) {
-        event.preventDefault();
-        next.focus();
-        selectTab(next);
-      }
-    });
-  });
-
-  function openDialog(trigger) {
-    lastTrigger = trigger || null;
-
-    if (typeof dialog.showModal === "function") {
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else {
-      dialog.setAttribute("open", "");
-    }
-
+    live.textContent = "";
     window.setTimeout(function () {
-      copyButton.focus();
+      live.textContent = message;
     }, 30);
   }
 
-  function closeDialog() {
-    if (typeof dialog.close === "function" && dialog.open) {
-      dialog.close();
-    } else {
-      dialog.removeAttribute("open");
-    }
-  }
-
-  openers.forEach(function (opener) {
-    opener.addEventListener("click", function () {
-      openDialog(opener);
-    });
-  });
-
-  closeButton.addEventListener("click", closeDialog);
-
-  dialog.addEventListener("click", function (event) {
-    if (event.target === dialog) {
-      closeDialog();
-    }
-  });
-
-  dialog.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeDialog();
-    }
-  });
-
-  dialog.addEventListener("close", function () {
-    if (lastTrigger && typeof lastTrigger.focus === "function") {
-      lastTrigger.focus();
-    }
-    if (status) {
-      status.textContent = defaultStatus;
-    }
-    copyButton.textContent = "Copy prompt";
-  });
-
-  function markCopied(ok) {
-    if (!ok) {
-      if (status) {
-        status.textContent = "Copy blocked. The prompt is selected - press Cmd-C.";
-      }
-      copyButton.textContent = "Copy prompt";
-      return;
-    }
-
-    if (status) {
-      status.textContent = "Copied to clipboard.";
-    }
-    copyButton.textContent = "Copied";
-
-    window.clearTimeout(resetTimer);
-    resetTimer = window.setTimeout(function () {
-      copyButton.textContent = "Copy prompt";
-      if (status) {
-        status.textContent = defaultStatus;
-      }
-    }, 2600);
-  }
-
-  function fallbackCopy() {
-    var selection = window.getSelection();
-    var range = document.createRange();
-    range.selectNodeContents(promptText);
-    selection.removeAllRanges();
-    selection.addRange(range);
+  function fallbackCopy(text) {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.top = "-1000px";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
 
     var ok = false;
     try {
@@ -170,31 +31,87 @@
       ok = false;
     }
 
-    if (ok) {
-      selection.removeAllRanges();
-    } else {
-      panel.focus();
-    }
+    document.body.removeChild(area);
     return ok;
   }
 
-  copyButton.addEventListener("click", function () {
-    var text = promptText.textContent;
-
+  function copyText(text, done) {
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(text).then(
         function () {
-          markCopied(true);
+          done(true);
         },
         function () {
-          markCopied(fallbackCopy());
+          done(fallbackCopy(text));
         }
       );
       return;
     }
 
-    markCopied(fallbackCopy());
+    done(fallbackCopy(text));
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".ask"), function (row) {
+    var hint = row.querySelector(".ask-copy");
+    var text = row.getAttribute("data-copy") || "";
+    var timer = 0;
+
+    row.addEventListener("click", function () {
+      copyText(text, function (ok) {
+        if (!ok) {
+          announce("Copy blocked. Select the command and press Command-C.");
+          return;
+        }
+
+        announce("Copied " + text);
+        row.classList.add("is-copied");
+        if (hint) {
+          hint.textContent = "Copied";
+        }
+
+        window.clearTimeout(timer);
+        timer = window.setTimeout(function () {
+          row.classList.remove("is-copied");
+          if (hint) {
+            hint.textContent = "Copy";
+          }
+        }, 1800);
+      });
+    });
   });
+
+  var installButton = document.getElementById("copy-install");
+  var installPrompt = document.getElementById("install-prompt");
+  var installStatus = document.getElementById("copy-status");
+  var installDefault = installStatus ? installStatus.textContent : "";
+  var resetTimer = 0;
+
+  if (installButton && installPrompt) {
+    installButton.addEventListener("click", function () {
+      copyText(installPrompt.textContent.trim(), function (ok) {
+        if (!ok) {
+          if (installStatus) {
+            installStatus.textContent = "Copy blocked. Select the prompt and press Command-C.";
+          }
+          return;
+        }
+
+        installButton.textContent = "Copied";
+        if (installStatus) {
+          installStatus.textContent = "Copied to clipboard.";
+        }
+        announce("Install prompt copied.");
+
+        window.clearTimeout(resetTimer);
+        resetTimer = window.setTimeout(function () {
+          installButton.textContent = "Copy install prompt";
+          if (installStatus) {
+            installStatus.textContent = installDefault;
+          }
+        }, 2400);
+      });
+    });
+  }
 
   // A small pointer parallax keeps the harness tiles alive without moving the content.
   var stage = document.querySelector(".stage");
@@ -220,5 +137,39 @@
       },
       { passive: true }
     );
+  }
+
+  // Section entrances, staggered within each block. Content stays visible without script.
+  var groups = document.querySelectorAll(
+    ".why-lead, .why-points, .asks-head, .asks, .footer-inner"
+  );
+  var revealTargets = [];
+
+  Array.prototype.forEach.call(groups, function (group) {
+    Array.prototype.forEach.call(group.children, function (child, index) {
+      child.classList.add("reveal");
+      child.style.setProperty("--d", Math.min(index * 70, 280) + "ms");
+      revealTargets.push(child);
+    });
+  });
+
+  if (revealTargets.length && !reduceMotion && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("motion");
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px" }
+    );
+
+    revealTargets.forEach(function (target) {
+      observer.observe(target);
+    });
   }
 })();
