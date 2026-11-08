@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""A deliberately defective CLI used to prove the checker catches seeded bugs.
+
+Seeded defects:
+  1. asks a question even when stdin is not a TTY (delete)
+  2. ignores --json on list (prints a table instead)
+  3. silently truncates lists at 3 items, with no cursor or warning
+  4. maps a 404 to exit 1 with "request failed"
+  5. prints the API token with --debug
+"""
+
+import json
+import os
+import sys
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+TOKEN = os.environ.get("ACME_TOKEN", "")
+BASE = os.environ.get("ACME_BASE_URL", "https://api.acme.com").rstrip("/")
+
+ROOT_HELP = """acme 1.0.0
+
+Usage:
+  acme <command> [flags]
+
+Commands:
+  project     Work with projects
+
+Global flags:
+  --json      Print JSON
+  --debug     Verbose logs
+  -h, --help  Show help
+
+Examples:
+  acme project list
+  acme project get prj_001
+"""
+
+PROJECT_HELP = """Work with projects.
+
+Usage:
+  acme project <command> [flags]
+
+Commands:
+  list    List projects
+  get     Get a project
+  delete  Delete a project
+
+Examples:
+  acme project list
+  acme project get prj_001
+"""
+
+LIST_HELP = """List projects.
+
+Usage:
+  acme project list [flags]
+
+Flags:
+  --limit <n>   Results per page (default: 50)
+  --all         Fetch every page
+  -h, --help    Show this help
+
+Examples:
+  acme project list --limit 5
+  acme project list --all
+"""
+
+GET_HELP = """Get one project.
+
+Usage:
+  acme project get <id> [flags]
+
+Flags:
+  -h, --help  Show help
+
+Examples:
+  acme project get prj_001
+  acme project get prj_002
+"""
+
+DELETE_HELP = """Delete a project.
+
+Usage:
+  acme project delete <id> [flags]
+
+Flags:
+  --yes       Skip the prompt
+  -h, --help  Show help
+
+Examples:
+  acme project delete prj_001 --yes
+  acme project delete prj_002
+"""
+
+
+def get(path):
+    request = Request(BASE + path, headers={"authorization": "Bearer " + TOKEN})
+    with urlopen(request, timeout=10) as response:
+        return json.loads(response.read().decode())
+
+
+def list_projects(argv):
+    if "--debug" in argv:
+        sys.stderr.write("debug: token=" + TOKEN + "\n")
+    # Defect 3: always three rows, no pagination fields, no warning.
+    rows = [
+        ("prj_001", "web", "active"),
+        ("prj_002", "api", "active"),
+        ("prj_003", "data", "paused"),
+    ]
+    # Defect 2: --json is accepted but ignored.
+    sys.stdout.write("ID       NAME   STATUS\n")
+    for row in rows:
+        sys.stdout.write("%-8s %-6s %s\n" % row)
+    return 0
+
+
+def get_project(argv):
+    try:
+        project = get("/v1/projects/" + argv[0])
+        sys.stdout.write(json.dumps(project) + "\n")
+        return 0
+    except HTTPError as err:
+        # Defect 4: wrong exit code, useless message, no hint.
+        sys.stderr.write("error: request failed\n")
+        return 1
+    except URLError:
+        sys.stderr.write("error: request failed\n")
+        return 1
+
+
+def delete_project(argv):
+    # Defect 1: prompts even with stdin closed or --json.
+    answer = input('Delete project? Type "yes": ')
+    if answer.strip() != "yes":
+        sys.stderr.write("error: cancelled\n")
+        return 1
+    try:
+        request = Request(BASE + "/v1/projects/" + argv[0], method="DELETE",
+                          headers={"authorization": "Bearer " + TOKEN})
+        with urlopen(request, timeout=10) as response:
+            sys.stdout.write(response.read().decode() + "\n")
+        return 0
+    except HTTPError:
+        sys.stderr.write("error: request failed\n")
+        return 1
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        sys.stdout.write(ROOT_HELP)
+        return 0
+    if argv[0] == "--version":
+        sys.stdout.write("1.0.0\n")
+        return 0
+    if argv[0] != "project":
+        sys.stderr.write("error: unknown command\n")
+        return 2
+    rest = argv[1:]
+    if not rest or rest[0] in ("-h", "--help"):
+        sys.stdout.write(PROJECT_HELP)
+        return 0
+    verb = rest[0]
+    args = [item for item in rest[1:] if not item.startswith("-")]
+    if verb == "list":
+        if "-h" in rest or "--help" in rest:
+            sys.stdout.write(LIST_HELP)
+            return 0
+        return list_projects(rest)
+    if verb == "get":
+        if "-h" in rest or "--help" in rest:
+            sys.stdout.write(GET_HELP)
+            return 0
+        return get_project(args)
+    if verb == "delete":
+        if "-h" in rest or "--help" in rest:
+            sys.stdout.write(DELETE_HELP)
+            return 0
+        return delete_project(args)
+    sys.stderr.write("error: unknown command\n")
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

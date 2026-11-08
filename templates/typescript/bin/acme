@@ -1,0 +1,4 @@
+#!/bin/sh
+# Dev launcher. Sets NODE_USE_ENV_PROXY so fetch honors HTTP(S)_PROXY.
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+NODE_USE_ENV_PROXY="${NODE_USE_ENV_PROXY:-1}" exec node "$DIR/acme.ts" "$@"

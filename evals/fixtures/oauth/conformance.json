@@ -1,0 +1,28 @@
+{
+  "name": "oauth device-flow fixture",
+  "tool": "acme",
+  "bin": "../../../templates/python/bin/acme",
+  "token_env": "ACME_TOKEN",
+  "token": "test-token",
+  "use_env_token": false,
+  "mock_args": ["--device-only"],
+  "resource": "project",
+  "sample_id": "prj_001",
+  "startup_budget_ms": 300,
+  "setup": [
+    ["config", "set", "base-url", "{base_url}"],
+    ["config", "set", "api-version", "2026-01-01"]
+  ],
+  "login": ["auth", "login", "--device"],
+  "capabilities": {
+    "jobs": false,
+    "bulk": false,
+    "files": false,
+    "doctor": false,
+    "schema": true,
+    "completions": true,
+    "update_check": false,
+    "refresh": true,
+    "idempotency": true
+  }
+}

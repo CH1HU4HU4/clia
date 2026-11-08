@@ -1,0 +1,21 @@
+{
+  "name": "acme-cli",
+  "version": "1.0.0",
+  "description": "Command line for Acme",
+  "type": "module",
+  "bin": {
+    "acme": "./bin/acme"
+  },
+  "scripts": {
+    "start": "node bin/acme.ts",
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

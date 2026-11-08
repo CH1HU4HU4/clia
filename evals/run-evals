@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""Run the automated CLIA evals.
+
+    python3 evals/run-evals            # all automated cases
+    python3 evals/run-evals --only defective
+
+Each case runs the conformance checker and asserts an outcome. Agent-run cases
+(existing CLI, gaps) are described in evals/README.md and scored by a reviewer.
+"""
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CHECKER = os.path.join(ROOT, "scripts", "conformance")
+FIXTURES = os.path.join(ROOT, "evals", "fixtures")
+TEMPLATES = os.path.join(ROOT, "templates")
+
+
+def run_checker(repo, binary=None, config=None):
+    report = tempfile.mktemp(prefix="clia-eval-", suffix=".json")
+    command = [sys.executable, CHECKER, "--repo", repo, "--report", report, "--json"]
+    if binary:
+        command += ["--bin", binary]
+    if config:
+        command += ["--config", config]
+    try:
+        proc = subprocess.run(command, capture_output=True, text=True, timeout=900)
+        if not os.path.exists(report):
+            raise RuntimeError("checker produced no report: " + proc.stderr[-400:])
+        with open(report, encoding="utf-8") as stream:
+            payload = json.load(stream)
+        return payload, proc
+    finally:
+        if os.path.exists(report):
+            os.remove(report)
+
+
+def statuses(payload):
+    return {row["id"]: row for row in payload.get("results", [])}
+
+
+def case_template(name, directory, need_go=False):
+    if need_go and shutil.which("go") is None:
+        return name, "SKIP", "go toolchain not on PATH"
+    if need_go:
+        build = subprocess.run(["go", "build", "-o", "bin/acme", "./cmd/acme"],
+                               cwd=directory, capture_output=True, text=True)
+        if build.returncode != 0:
+            return name, "FAIL", "go build failed: " + build.stderr.strip()[-200:]
+    payload, proc = run_checker(directory)
+    if payload.get("gate", {}).get("pass"):
+        return name, "PASS", "gate passed (%s P0 checks)" % payload["summary"]["p0"]["PASS"]
+    rows = statuses(payload)
+    failures = [key for key, row in rows.items() if row["status"] == "FAIL"
+                and row["priority"] == "P0" and row["mode"] == "check"]
+    return name, "FAIL", "P0 failures: " + ", ".join(failures[:8])
+
+
+def case_defective():
+    payload, _proc = run_checker(os.path.join(FIXTURES, "defective"))
+    rows = statuses(payload)
+    expected = ["M13", "M15", "M19", "M30", "M45"]
+    missing = [rule for rule in expected if rows.get(rule, {}).get("status") != "FAIL"]
+    if missing:
+        return "defective", "FAIL", "checker missed: " + ", ".join(missing)
+    if "leaked the token" not in rows["M30"].get("detail", ""):
+        return "defective", "FAIL", "M30 failed but did not name the token leak"
+    if "want 10" not in rows["M45"].get("detail", ""):
+        return "defective", "FAIL", "M45 did not catch the non-TTY prompt"
+    return "defective", "PASS", "caught prompt, missing --json, truncation, wrong exit, token leak"
+
+
+def case_oauth():
+    payload, _proc = run_checker(os.path.join(FIXTURES, "oauth"))
+    rows = statuses(payload)
+    problems = []
+    for rule in ("M28", "M34"):
+        if rows.get(rule, {}).get("status") != "PASS":
+            problems.append(rule + " = " + str(rows.get(rule, {}).get("status")))
+    if problems:
+        return "oauth-device", "FAIL", "; ".join(problems)
+    return "oauth-device", "PASS", "non-TTY device login and refresh work"
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--only", help="comma-separated case names")
+    args = parser.parse_args()
+    wanted = [item.strip() for item in (args.only or "").split(",") if item.strip()]
+
+    cases = [
+        ("python-template", lambda: case_template("python-template", os.path.join(TEMPLATES, "python"))),
+        ("typescript-template", lambda: case_template("typescript-template", os.path.join(TEMPLATES, "typescript"))),
+        ("go-template", lambda: case_template("go-template", os.path.join(TEMPLATES, "go"), need_go=True)),
+        ("defective", case_defective),
+        ("oauth-device", case_oauth),
+    ]
+    if wanted:
+        cases = [case for case in cases if case[0] in wanted]
+
+    failures = 0
+    print("CLIA evals")
+    print("")
+    for name, runner in cases:
+        try:
+            label, status, detail = runner()
+        except Exception as err:  # noqa: BLE001
+            label, status, detail = name, "FAIL", str(err)
+        print("%-20s %-5s %s" % (label, status, detail))
+        if status == "FAIL":
+            failures += 1
+    print("")
+    print("%d case(s), %d failure(s)" % (len(cases), failures))
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

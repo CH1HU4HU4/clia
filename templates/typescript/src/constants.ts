@@ -1,0 +1,10 @@
+export const TOOL = "acme";
+export const VERSION = "1.0.0";
+export const ENV = "ACME";
+export const DOCS_URL = "https://example.com/acme/docs/cli";
+export const API_PREFIX = "/v1";
+export const DEFAULT_BASE_URL = "https://api.acme.com";
+export const DEFAULT_API_VERSION = "2026-01-01";
+export const DEFAULT_PAGE_SIZE = 50;
+export const MAX_PAGE_SIZE = 200;
+export const ALL_CAP = 10000;

@@ -1,0 +1,27 @@
+{
+  "name": "defective fixture",
+  "tool": "acme",
+  "bin": "./bin/acme",
+  "token_env": "ACME_TOKEN",
+  "token": "test-token",
+  "resource": "project",
+  "sample_id": "prj_001",
+  "ambiguous": "dupe",
+  "startup_budget_ms": 300,
+  "setup": [],
+  "login": [],
+  "env": {
+    "ACME_BASE_URL": "{base_url}"
+  },
+  "capabilities": {
+    "jobs": false,
+    "bulk": false,
+    "files": false,
+    "doctor": false,
+    "schema": false,
+    "completions": false,
+    "update_check": false,
+    "refresh": false,
+    "idempotency": false
+  }
+}

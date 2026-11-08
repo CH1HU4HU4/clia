@@ -1,0 +1,32 @@
+{
+  "root_help": {
+    "code": 0,
+    "stderr": "",
+    "stdout": "acme 1.0.0 \u2014 Command line for Acme\n\nManage Acme projects from a terminal or an agent.\n\nProfile: default ({base_url}, org acme, project -, API 2026-01-01)\n\nUsage:\n  acme <command> [flags]\n\nCommands:\n  auth        Authenticate and inspect credentials\n  config      Read and write CLI configuration\n  project     Work with projects\n  whoami      Show the current user and target\n  version     Print the version\n  completion  Generate shell completions\n  schema      Describe the command tree\n  help        Show help\n\nGlobal flags:\n  --json                        Print one JSON document on stdout\n  --quiet                       Print identifiers only\n  --no-color                    Disable ANSI color (also NO_COLOR)\n  --no-input                    Fail instead of prompting\n  --yes                         Confirm destructive actions without a prompt\n  --dry-run                     Print the request and send nothing\n  --debug                       Verbose logs to stderr, redacted\n  --timeout <seconds>           Request timeout in seconds (default: 30; env: ACME_TIMEOUT)\n  --profile <name>              Config profile (env: ACME_PROFILE)\n  --org <id>                    Override the org for this command (env: ACME_ORG)\n  --project <id>                Override the project for this command (env: ACME_PROJECT)\n  --api-version <version>       Override the pinned API version (env: ACME_API_VERSION)\n  --base-url <url>              Override the API base URL (env: ACME_BASE_URL)\n  --allow-http                  Allow plain http for a non-loopback host\n  --token <token>               API token (prefer ACME_TOKEN) (env: ACME_TOKEN)\n  -h, --help                    Show help\n\nExamples:\n  acme auth login --token $ACME_TOKEN\n  acme project list --limit 5 --json\n  acme project get prj_001\n\nExit codes:\n  0 success, 2 usage, 3 auth, 4 forbidden, 5 not found, 6 conflict, 7 rate limit/server, 8 network, 10 confirmation, 11 ambiguous\n\nDocs: https://example.com/acme/docs/cli\n"
+  },
+  "task1_auth_status": {
+    "code": 0,
+    "stderr": "",
+    "stdout": "{\"authenticated\":true,\"profile\":\"default\",\"base_url\":\"{base_url}\",\"org\":\"acme\",\"project\":null,\"api_version\":\"2026-01-01\",\"environment\":\"sandbox\",\"user\":\"omer@acme.com\",\"expires_at\":null}\n"
+  },
+  "task2_list": {
+    "code": 0,
+    "stderr": "",
+    "stdout": "{\"data\":[{\"id\":\"prj_forbidden\",\"name\":\"forbidden\",\"status\":\"active\",\"owner\":\"omer@acme.com\",\"created_at\":\"{value}\",\"updated_at\":\"{value}\"},{\"id\":\"prj_ratelimit\",\"name\":\"ratelimit\",\"status\":\"active\",\"owner\":\"omer@acme.com\",\"created_at\":\"{value}\",\"updated_at\":\"{value}\"},{\"id\":\"prj_servererror\",\"name\":\"servererror\",\"status\":\"active\",\"owner\":\"omer@acme.com\",\"created_at\":\"{value}\",\"updated_at\":\"{value}\"},{\"id\":\"prj_slow\",\"name\":\"slow\",\"status\":\"active\",\"owner\":\"omer@acme.com\",\"created_at\":\"{value}\",\"updated_at\":\"{value}\"},{\"id\":\"prj_009\",\"name\":\"existing\",\"status\":\"active\",\"owner\":\"dave@acme.com\",\"created_at\":\"{value}\",\"updated_at\":\"{value}\"}],\"has_more\":true,\"next_cursor\":\"cur_NQ\",\"truncated\":false}\n"
+  },
+  "task3_get": {
+    "code": 0,
+    "stderr": "",
+    "stdout": "{\"id\":\"prj_001\",\"name\":\"web\",\"status\":\"active\",\"owner\":\"alice@acme.com\",\"created_at\":\"{value}\",\"updated_at\":\"{value}\",\"description\":\"Customer-facing web app\",\"settings\":{\"region\":\"us-east-1\",\"retention_days\":30},\"counts\":{\"deployments\":0,\"members\":1},\"metadata\":{\"tier\":\"free\"}}\n"
+  },
+  "task4_create_dry": {
+    "code": 0,
+    "stderr": "",
+    "stdout": "{\"method\":\"POST\",\"url\":\"{base_url}/v1/projects\",\"headers\":{\"accept\":\"application/json\",\"user-agent\":\"acme/1.0.0 (darwin; arm64)\",\"x-api-version\":\"2026-01-01\",\"authorization\":\"****\",\"content-type\":\"application/json\",\"idempotency-key\":\"{value}\"},\"body\":{\"name\":\"clia-golden\"},\"target\":{\"profile\":\"default\",\"base_url\":\"{base_url}\",\"org\":\"acme\",\"project\":\"\",\"api_version\":\"2026-01-01\"}}\n"
+  },
+  "task5_delete_refused": {
+    "code": 10,
+    "stderr": "{\"error\":{\"code\":\"confirmation_required\",\"message\":\"Refusing to delete project \\\"web\\\" (prj_001) without --yes\",\"hint\":\"Re-run with --yes to delete project prj_001\",\"retryable\":false,\"target\":{\"profile\":\"default\",\"base_url\":\"{base_url}\",\"org\":\"acme\",\"project\":\"\",\"api_version\":\"2026-01-01\"}}}\n",
+    "stdout": ""
+  }
+}

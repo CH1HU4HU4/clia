@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""CLIA conformance checker.
+
+Runs a built CLI against the [check] rules in CLI-GUIDELINES.md section 17,
+using the binary, its help, the mock API, the repo, and the config file as
+evidence. Exits 0 when every applicable P0 check passes.
+
+    scripts/conformance --bin ./bin/acme --config conformance.json
+    scripts/conformance --bin ./bin/acme --report report.json --strict
+    scripts/conformance --bin ./bin/acme --update-goldens
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import shlex
+import shutil
+import sys
+import tempfile
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+
+from conform import checks_data, checks_docs, checks_ops, checks_safety  # noqa: E402
+from conform import config as cfgmod  # noqa: E402
+from conform.discover import discover  # noqa: E402
+from conform.report import Report, emit_json  # noqa: E402
+from conform.state import Ctx  # noqa: E402
+from conform.util import Mock, Runner  # noqa: E402
+
+
+def _derive_tool(binary):
+    argv = shlex.split(binary) if isinstance(binary, str) else list(binary)
+    base = os.path.basename(argv[-1]) if argv else "cli"
+    return os.path.splitext(base)[0]
+
+
+def _expand(items, values):
+    out = []
+    for item in items:
+        out.append(str(item).replace("{base_url}", values["base_url"]).replace("{token}", values["token"])
+                   .replace("{xdg}", values["xdg"]).replace("{tool}", values["tool"])
+                   .replace("{repo}", values["repo"]))
+    return out
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="CLIA conformance checker")
+    parser.add_argument("--bin", dest="binary", help="CLI binary or launcher command")
+    parser.add_argument("--repo", default=os.getcwd(), help="CLI repository root")
+    parser.add_argument("--config", help="conformance.json path (default: <repo>/conformance.json)")
+    parser.add_argument("--cli-doc", help="CLI.md path (default: <repo>/CLI.md)")
+    parser.add_argument("--mock", help="mock_api.py path (default: bundled)")
+    parser.add_argument("--base-url", help="use an already running API instead of starting the mock")
+    parser.add_argument("--report", help="write the JSON report to this path")
+    parser.add_argument("--json", action="store_true", help="print the report as JSON")
+    parser.add_argument("--strict", action="store_true", help="P1 failures also fail the gate")
+    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--update-goldens", action="store_true", help="write golden snapshots")
+    parser.add_argument("--skip", default="", help="comma-separated rule IDs to skip")
+    parser.add_argument("--keep", action="store_true", help="keep the temp home directory")
+    parser.add_argument("--timeout", type=int, default=25, help="per-command timeout in seconds")
+    args = parser.parse_args(argv)
+
+    repo = os.path.abspath(args.repo)
+    config_path = args.config or os.path.join(repo, "conformance.json")
+    cfg = cfgmod.load(config_path)
+    binary = args.binary or cfg.get("bin")
+    if not binary:
+        parser.error("--bin is required (or set \"bin\" in conformance.json)")
+    tool = cfg.get("tool") or _derive_tool(binary)
+    cfg["tool"] = tool
+    name = cfg.get("name") or tool
+    token = cfg.get("token") or "test-token"
+    token_env = cfg.get("token_env") or "ACME_TOKEN"
+    prefix = token_env.rsplit("_", 1)[0] if "_" in token_env else token_env
+
+    mock = Mock(script=args.mock or os.path.join(HERE, "mock_api.py"), repo=repo)
+    base_url = args.base_url or mock.start(cfg.get("mock_args") or [])
+    if args.base_url:
+        mock.attach(base_url)
+    temp = tempfile.mkdtemp(prefix="clia-conformance-")
+    xdg = os.path.join(temp, "xdg")
+    home = os.path.join(temp, "home")
+    os.makedirs(xdg, exist_ok=True)
+    os.makedirs(home, exist_ok=True)
+
+    env = {}
+    for key, value in os.environ.items():
+        if key.startswith(prefix + "_") or key in ("NO_COLOR", "CI"):
+            continue
+        env[key] = value
+    env.update({
+        "HOME": home,
+        "XDG_CONFIG_HOME": xdg,
+        "TERM": "dumb",
+    })
+    if cfg.get("use_env_token", True):
+        env[token_env] = token
+    values = {"base_url": base_url, "token": token, "xdg": xdg, "tool": tool, "repo": repo}
+    for key, value in (cfg.get("env") or {}).items():
+        env[key] = cfgmod.expand(value, values)
+
+    runner = Runner(binary, repo, env, timeout=args.timeout)
+    report = Report(name, binary)
+    cli_doc = args.cli_doc or os.path.join(repo, "CLI.md")
+    ctx = Ctx(runner, cfg, report, repo, cli_doc, xdg, home, mock, base_url, token)
+    ctx.update_goldens = args.update_goldens
+
+    code = 0
+    try:
+        mock.reset()
+        for item in cfg.get("setup") or []:
+            command = _expand(item, values)
+            result = ctx.run(command)
+            if result.code != 0:
+                sys.stderr.write("setup failed: %s\n%s\n" % (" ".join(command), result.err))
+                return 2
+        login = cfg.get("login") or []
+        if login:
+            command = _expand(login, values)
+            result = ctx.run(command)
+            if result.code != 0:
+                sys.stderr.write("login failed: %s\n%s\n" % (" ".join(command), result.err))
+                return 2
+
+        ctx.commands = discover(runner, cfg)
+        if not ctx.commands:
+            sys.stderr.write("could not discover any commands from schema or --help\n")
+            return 2
+
+        checks_docs.all_checks(ctx)
+        checks_data.all_checks(ctx)
+        checks_safety.all_checks(ctx)
+        checks_ops.all_checks(ctx)
+
+        skipped = [item.strip() for item in args.skip.split(",") if item.strip()]
+        for rule_id in skipped:
+            report.add(rule_id, "SKIP", "skipped by --skip")
+        if skipped:
+            checks_ops.check_m42(ctx)
+
+        ok, _p0, _p1 = report.gate(strict=args.strict)
+        if args.json:
+            emit_json(report, args.report, strict=args.strict)
+        else:
+            report.print_text(verbose=args.verbose, strict=args.strict)
+            if args.report:
+                report.dump_json(args.report)
+        code = 0 if ok else 1
+    finally:
+        mock.stop()
+        if not args.keep:
+            shutil.rmtree(temp, ignore_errors=True)
+    return code
+
+
+if __name__ == "__main__":
+    sys.exit(main())
