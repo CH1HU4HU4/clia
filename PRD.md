@@ -248,6 +248,26 @@ The skill itself was not built in that change. It shipped in 1.0.
 - Skill marketplaces and distribution automation
 - Multi-product monorepo command namespacing
 
+### 9.4 Decisions after 1.0
+
+Section 11 listed questions that were open when this PRD was written. Most were answered by what shipped in 1.0. The table records each decision and where it lives in the skill, so the PRD does not read as open where the product has already chosen.
+
+| §11 item | Decision | Where it lives |
+|---|---|---|
+| 1. Scaffolding surface | Scripts inside the skill folder. No `clia` meta-CLI ships in 1.x | `scripts/conformance`, `scripts/conform/`, `evals/run-evals` |
+| 2. OAuth device flow | Required, not optional. All three templates implement it | `auth login --device` in each template; `oauth-device` eval |
+| 3. Products with several APIs | One binary with command groups. Multi-product monorepo namespacing stays out of scope | Templates and §9.3 |
+| 4. Checker evidence | One evidence model, with one checks module per rule family | `references/checker.md` ("Evidence model"), `scripts/conform/checks_*.py` |
+| 5. JSON key case | Inherit the product API's convention, one convention per tool | `CLI-GUIDELINES.md` §3 |
+| 6. Rules source | `rules.py` is canonical. No generated `rules.md` | `scripts/conform/rules.py` |
+| 7. Guidelines versioning | **Still open.** No policy exists | — |
+| 8. MCP follow-on | CLI-only for v1. An MCP server is a separate product, not a 1.x deliverable | §5.2 non-goals |
+
+Two consequences:
+
+- **Item 7 is the one real decision left.** A proposed shape, not yet accepted: `CLI-GUIDELINES.md` carries independent semver, and every skill release records the guidelines version it was tested against. Without that pin, the "skill rot" mitigation in §10 has nothing to check against.
+- **Everything else is a record, not a plan.** The next PRD change should either accept item 7 or add the first post-1.0 deliverable to §9.3, not re-litigate the six settled items.
+
 ## 10. Risks
 
 | Risk | Impact | Mitigation |
@@ -261,6 +281,8 @@ The skill itself was not built in that change. It shipped in 1.0.
 | Skill rot | Agents follow stale rules | Version the guidelines, keep the checker executable, review on API changes |
 
 ## 11. Open questions
+
+Items 1–6 and 8 are settled; their decisions are recorded in §9.4. Item 7 is the only question still open.
 
 1. Should the skill ship a `clia` meta-CLI that scaffolds and checks, or keep everything as scripts inside the skill folder?
 2. Does v1 need OAuth device flow, or is API token auth enough for the first fixtures?

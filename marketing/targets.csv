@@ -1,0 +1,16 @@
+rank,product,repo,stars,hosted,auth,existing_cli,score,tier,status,next_action
+1,NocoDB,nocodb/nocodb,65513,yes,xc-token,community 12 stars,93,A,research,verify license and sandbox
+2,Baserow,baserow/baserow,6320,yes,JWT or DB token,community PyPI,90,A,research,map 350-path schema and open proposal
+3,Plane,makeplane/plane,62346,yes,X-API-Key,community 32 stars + ops CLI,88,A,research,build issues list and import slice
+4,Listmonk,knadh/listmonk,24260,no,Basic or token,none,85,A,research,build subscriber import and campaign dry-run
+5,Invoice Ninja,invoiceninja/invoiceninja,10574,yes,X-API-TOKEN,community 1 star,83,B,research,confirm ELv2 contribution path
+6,Paperless-ngx,paperless-ngx/paperless-ngx,48044,no,Token,3 community CLIs,80,B,research,read maintainer stance on community CLIs
+7,Outline,outline/outline,41239,yes,Bearer or OAuth,community,79,B,research,check BSL and external PR policy
+8,Shlink,shlinkio/shlink,5421,no,X-Api-Key,server CLI + TODO repo,78,B,research,confirm remote client gap
+9,Typesense,typesense/typesense,27118,yes,API key,community 17 stars 2023,77,B,research,check official client overlap
+10,Dub,dubinc/dub.link,25156,yes,Bearer,community 0.0.13,76,B,research,confirm hosted API surface
+11,Formbricks,formbricks/formbricks,13234,yes,API key,none,72,C,watch,verify v2 management API
+12,Plausible,plausible/analytics,29829,yes,Bearer,community 1 star,72,C,watch,confirm write surface
+13,Docmost,docmost/docmost,22316,yes,unclear,community 14 stars,71,C,watch,find documented API
+14,Umami,umami-software/umami,40085,yes,API key,official abandoned 2022,67,C,watch,ask about reviving CLI
+15,Ghostfolio,ghostfolio/ghostfolio,9694,no,Token,none,66,C,watch,confirm API token path

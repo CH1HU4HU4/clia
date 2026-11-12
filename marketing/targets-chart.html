@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body { color: var(--foreground); font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif; }
+  .wrap { padding: 4px 0 8px; }
+  h1 { font-size: 17px; line-height: 1.2; margin: 0 0 4px; font-weight: 650; letter-spacing: -0.01em; }
+  .sub { font-size: 12px; color: var(--muted-foreground, var(--muted)); margin: 0 0 18px; }
+  .sub b { color: var(--foreground); font-weight: 600; }
+  .rows { display: grid; gap: 7px; }
+  .row { display: grid; grid-template-columns: 18px 104px 1fr 32px; align-items: center; gap: 9px; }
+  .rank { font-size: 11px; color: var(--muted-foreground, var(--muted)); font-variant-numeric: tabular-nums; text-align: right; }
+  .name { font-size: 12.5px; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .name span { display: block; font-size: 10px; font-weight: 400; color: var(--muted-foreground, var(--muted)); margin-top: 1px; }
+  .track { height: 18px; border-radius: 4px; background: var(--secondary); overflow: hidden; position: relative; }
+  .bar { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 7px; font-size: 10.5px; font-weight: 650; color: var(--primary-foreground, #fff); font-variant-numeric: tabular-nums; }
+  .a .bar { background: var(--chart-1, #3b82f6); }
+  .b .bar { background: var(--chart-2, #8b5cf6); }
+  .c .bar { background: var(--chart-3, #64748b); }
+  .score { font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--foreground); }
+  .legend { display: flex; gap: 16px; margin-top: 16px; font-size: 11px; color: var(--muted-foreground, var(--muted)); flex-wrap: wrap; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: 1px; }
+  .note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11px; line-height: 1.5; color: var(--muted-foreground, var(--muted)); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Open-source SaaS targets without an official CLI</h1>
+  <p class="sub">Composite fit score, out of 100. Verified 12 Nov 2026. <b>Three to build first: Baserow, Listmonk, Plane.</b></p>
+
+  <div class="rows">
+    <div class="row a"><div class="rank">1</div><div class="name">NocoDB<span>cloud · community</span></div><div class="track"><div class="bar" style="width:93%">93</div></div><div class="score">93</div></div>
+    <div class="row a"><div class="rank">2</div><div class="name">Baserow<span>cloud · 350 endpoints</span></div><div class="track"><div class="bar" style="width:90%">90</div></div><div class="score">90</div></div>
+    <div class="row a"><div class="rank">3</div><div class="name">Plane<span>cloud · MCP, no CLI</span></div><div class="track"><div class="bar" style="width:88%">88</div></div><div class="score">88</div></div>
+    <div class="row a"><div class="rank">4</div><div class="name">Listmonk<span>self-host · no CLI</span></div><div class="track"><div class="bar" style="width:85%">85</div></div><div class="score">85</div></div>
+    <div class="row b"><div class="rank">5</div><div class="name">Invoice Ninja<span>cloud · community</span></div><div class="track"><div class="bar" style="width:83%">83</div></div><div class="score">83</div></div>
+    <div class="row b"><div class="rank">6</div><div class="name">Paperless-ngx<span>self-host · 3 CLIs</span></div><div class="track"><div class="bar" style="width:80%">80</div></div><div class="score">80</div></div>
+    <div class="row b"><div class="rank">7</div><div class="name">Outline<span>cloud · community</span></div><div class="track"><div class="bar" style="width:79%">79</div></div><div class="score">79</div></div>
+    <div class="row b"><div class="rank">8</div><div class="name">Shlink<span>self-host · TODO 2022</span></div><div class="track"><div class="bar" style="width:78%">78</div></div><div class="score">78</div></div>
+    <div class="row b"><div class="rank">9</div><div class="name">Typesense<span>cloud · stale 2023</span></div><div class="track"><div class="bar" style="width:77%">77</div></div><div class="score">77</div></div>
+    <div class="row b"><div class="rank">10</div><div class="name">Dub<span>cloud · community</span></div><div class="track"><div class="bar" style="width:76%">76</div></div><div class="score">76</div></div>
+    <div class="row c"><div class="rank">11</div><div class="name">Formbricks<span>cloud · verify API</span></div><div class="track"><div class="bar" style="width:72%">72</div></div><div class="score">72</div></div>
+    <div class="row c"><div class="rank">12</div><div class="name">Plausible<span>cloud · narrow API</span></div><div class="track"><div class="bar" style="width:72%">72</div></div><div class="score">72</div></div>
+    <div class="row c"><div class="rank">13</div><div class="name">Docmost<span>cloud · API unclear</span></div><div class="track"><div class="bar" style="width:71%">71</div></div><div class="score">71</div></div>
+    <div class="row c"><div class="rank">14</div><div class="name">Umami<span>cloud · CLI abandoned 2022</span></div><div class="track"><div class="bar" style="width:67%">67</div></div><div class="score">67</div></div>
+    <div class="row c"><div class="rank">15</div><div class="name">Ghostfolio<span>self-host · no CLI</span></div><div class="track"><div class="bar" style="width:66%">66</div></div><div class="score">66</div></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--chart-1,#3b82f6)"></span>First wave</span>
+    <span><span class="dot" style="background:var(--chart-2,#8b5cf6)"></span>Second wave</span>
+    <span><span class="dot" style="background:var(--chart-3,#64748b)"></span>Watch</span>
+  </div>
+
+  <div class="note">Excluded because they already ship a CLI: Chatwoot (v0.7.0), Twenty, DocuSeal, Postiz, Metabase, Teable, Meilisearch, Langfuse, Immich, Actual. Scores weight API surface 25, CLI gap 20, distribution 20, maintainer fit 15, CLI leverage 20.</div>
+</div>
+</body>
+</html>
