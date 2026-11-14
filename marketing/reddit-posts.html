@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reddit posts for CLIA</title>
+<style>
+  :root {
+    --display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body { font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif); color: var(--foreground, #171614); }
+  .report { width: 100%; max-width: 100%; font-size: 15px; line-height: 1.55; }
+
+  a { color: var(--primary, #c63c00); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--primary, #c63c00) 40%, transparent); }
+  a:hover { border-bottom-color: var(--primary, #c63c00); }
+
+  .masthead { border-top: 4px solid var(--foreground, #171614); padding-top: 18px; }
+  .kicker { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary, #c63c00); }
+  h1 { font-family: var(--display); font-size: clamp(36px, 7vw, 54px); line-height: 1.02; letter-spacing: -0.025em; margin: 12px 0 12px; font-weight: 600; }
+  .dek { font-size: 18px; line-height: 1.5; color: var(--muted-foreground, #6d675f); max-width: 62ch; margin: 0; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 20px; padding: 10px 0; border-top: 1px solid var(--border, #ddd8cf); border-bottom: 1px solid var(--border, #ddd8cf); font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 10.5px; letter-spacing: 0.04em; color: var(--muted-foreground, #6d675f); text-transform: uppercase; }
+
+  .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border, #ddd8cf); border: 1px solid var(--border, #ddd8cf); margin: 26px 0 8px; }
+  .rule { background: var(--background, #fbfaf7); padding: 13px 15px; }
+  .rule b { display: block; font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--primary, #c63c00); margin-bottom: 4px; }
+  .rule span { font-size: 13px; color: var(--foreground, #171614); line-height: 1.4; display: block; }
+
+  .toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 18px 0 0; font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 11px; }
+  .toc a { border-bottom: none; color: var(--muted-foreground, #6d675f); }
+  .toc a:hover { color: var(--primary, #c63c00); }
+  .toc .slash { color: var(--border, #ddd8cf); }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 46px 0 0; padding-bottom: 8px; border-bottom: 2px solid var(--foreground, #171614); }
+  .section-head h2 { font-family: var(--display); font-size: 27px; line-height: 1.1; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  .section-head span { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-foreground, #6d675f); white-space: nowrap; }
+
+  .post { display: grid; grid-template-columns: 38px minmax(0, 1fr); column-gap: 16px; padding: 26px 0 30px; border-bottom: 1px solid var(--border, #ddd8cf); }
+  .post-num { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 12px; color: var(--primary, #c63c00); padding-top: 7px; }
+  .post > div { min-width: 0; }
+  .subhead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 10px; }
+  .subname { font-family: var(--display); font-size: 26px; line-height: 1.1; font-weight: 600; letter-spacing: -0.01em; }
+  .members { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 10.5px; color: var(--muted-foreground, #6d675f); }
+  .chip { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border, #ddd8cf); color: var(--muted-foreground, #6d675f); padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+  .chip.fit { border-color: var(--primary, #c63c00); color: var(--primary, #c63c00); }
+  .chip.warn { border-color: var(--warning, #9a5b00); color: var(--warning, #9a5b00); }
+
+  .why { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: var(--muted-foreground, #6d675f); max-width: 68ch; }
+  .voice { margin: 5px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--muted-foreground, #6d675f); }
+  .voice b { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--foreground, #171614); font-weight: 500; }
+
+  .label { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-foreground, #6d675f); margin: 20px 0 6px; }
+  .title-line { font-size: 19px; line-height: 1.3; font-weight: 600; letter-spacing: -0.005em; max-width: 96%; }
+  .copy { white-space: pre-line; font-size: 15px; line-height: 1.62; border-left: 2px solid var(--border, #ddd8cf); padding-left: 16px; max-width: 96%; }
+  .comment { white-space: pre-line; background: var(--code-background, #f3f0e9); border: 1px solid var(--border, #ddd8cf); border-radius: var(--radius, 4px); padding: 12px 14px; font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 12.5px; line-height: 1.62; max-width: 96%; overflow-wrap: break-word; }
+  .note { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 14px; font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 10px; letter-spacing: 0.03em; color: var(--muted-foreground, #6d675f); }
+  .note b { font-weight: 500; color: var(--foreground, #171614); }
+
+  .short { border: 1px solid var(--border, #ddd8cf); border-radius: var(--radius, 4px); padding: 18px 18px 20px; margin-top: 16px; }
+  .short h3 { font-family: var(--display); font-size: 22px; margin: 0 0 4px; font-weight: 600; }
+  .short p { margin: 0 0 10px; font-size: 13.5px; color: var(--muted-foreground, #6d675f); line-height: 1.5; }
+
+  .avoid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; margin-top: 16px; }
+  .avoid-item { border-left: 3px solid var(--destructive, #b3261e); padding: 2px 0 2px 12px; }
+  .avoid-item b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .avoid-item span { display: block; font-size: 12.5px; line-height: 1.45; color: var(--muted-foreground, #6d675f); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  th { text-align: left; font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-foreground, #6d675f); font-weight: 500; padding: 0 10px 7px 0; border-bottom: 1px solid var(--border, #ddd8cf); }
+  td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--border, #ddd8cf); vertical-align: top; font-size: 14px; line-height: 1.45; }
+  td:first-child { font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace); font-size: 11.5px; color: var(--primary, #c63c00); white-space: nowrap; width: 58px; }
+  td:last-child { color: var(--muted-foreground, #6d675f); }
+
+  .footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--border, #ddd8cf); font-size: 12.5px; line-height: 1.6; color: var(--muted-foreground, #6d675f); }
+  .footer b { color: var(--foreground, #171614); font-weight: 500; }
+
+  @media (max-width: 620px) {
+    .rules { grid-template-columns: 1fr; }
+    .avoid { grid-template-columns: 1fr; }
+    .post { grid-template-columns: 1fr; }
+    .post-num { padding-top: 0; margin-bottom: 4px; }
+    .section-head { align-items: flex-start; flex-direction: column; gap: 4px; }
+    .copy { font-size: 14.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="report">
+
+  <header class="masthead">
+    <div class="kicker">CLIA / Reddit launch board</div>
+    <h1>Posts for eight subreddits</h1>
+    <p class="dek">Written for founders who build with AI, not CLI experts. Copy one, change the details to your product, post.</p>
+    <div class="meta">
+      <span>Drafts / 12 Nov 2026</span>
+      <span>8 posts + 1 short promo</span>
+      <span>No paid placement</span>
+    </div>
+  </header>
+
+  <div class="rules">
+    <div class="rule"><b>Rule 1</b><span>One post per sub, per week. Never the same title twice.</span></div>
+    <div class="rule"><b>Rule 2</b><span>No invented stories. Describe what the product does.</span></div>
+    <div class="rule"><b>Rule 3</b><span>The post has to work without the repo link. Put the link in the first comment.</span></div>
+  </div>
+
+  <nav class="toc">
+    <a href="#sideproject">SideProject</a><span class="slash">/</span>
+    <a href="#coolgithub">coolgithubprojects</a><span class="slash">/</span>
+    <a href="#imadethis">IMadeThis</a><span class="slash">/</span>
+    <a href="#alpha">alphaandbetausers</a><span class="slash">/</span>
+    <a href="#launch">LaunchMyStartup</a><span class="slash">/</span>
+    <a href="#github">github</a><span class="slash">/</span>
+    <a href="#buildinpublic">buildinpublic</a><span class="slash">/</span>
+    <a href="#roast">roastmystartup</a>
+  </nav>
+
+  <div class="section-head">
+    <h2>The posts</h2>
+    <span>In posting order</span>
+  </div>
+
+  <article class="post" id="sideproject">
+    <div class="post-num">01</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/SideProject</span>
+        <span class="members">~848K members</span>
+        <span class="chip">Story first</span>
+      </div>
+      <p class="why">Founders show what they built. Broad reach, low patience for ads.</p>
+      <p class="voice"><b>Voice</b> Plain talk. Problem first, promise second. No CLI jargon.</p>
+
+      <div class="label">Title</div>
+      <div class="title-line">I built a skill that gives your SaaS a command line for AI agents</div>
+
+      <div class="label">Body</div>
+      <div class="copy">Founders can build a SaaS with Claude Code now. The part that still takes work is letting an agent use the product after it ships.
+
+Agents are good at running commands. They are bad at guessing how your app works. A small command line fixes that. It gives the agent a few clear commands, like &#96;customers list&#96; or &#96;invoice create&#96;, instead of a screen it cannot see.
+
+CLIA is a skill for Claude Code, Codex, or Cursor. You point it at your product and it builds those commands for you: the main jobs, clean output the agent can read, no questions that freeze it, and a confirmation before anything gets deleted.
+
+You do not need to know how to design a CLI. You need to know what your product does.
+
+It is free and open source. If you built a SaaS with AI and want agents to use it, tell me what your product does. I would like to see if the skill handles it. Repo in the comments.</div>
+
+      <div class="label">First comment</div>
+      <div class="comment">Repo: https://github.com/CH1HU4HU4/clia
+
+The skill is in &#96;SKILL.md&#96;. Try it on a product you built and tell me what the agent gets wrong.</div>
+
+      <div class="note"><span><b>Flair</b> none required</span><span><b>Post</b> weekday morning ET</span><span><b>Link</b> first comment</span></div>
+    </div>
+  </article>
+
+  <article class="post" id="coolgithub">
+    <div class="post-num">02</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/coolgithubprojects</span>
+        <span class="members">~50K members</span>
+        <span class="chip fit">Best fit</span>
+      </div>
+      <p class="why">Developers browse new GitHub projects. The repo is the post.</p>
+      <p class="voice"><b>Voice</b> Short and concrete. Repo first. This sub can handle the stack list.</p>
+
+      <div class="label">Title</div>
+      <div class="title-line">[PYTHON] CLIA - a skill that gives your SaaS a command line for AI agents</div>
+
+      <div class="label">Body</div>
+      <div class="copy">CLIA is a skill for coding agents. Point it at a SaaS product with an API, and it builds a small CLI: the commands that cover the main jobs, clean output an agent can read, no questions that stop it when it runs on its own, and a confirmation before deletes.
+
+The repo includes templates for TypeScript, Go, and Python, a demo API, and a check for the common ways an AI-built CLI fails.
+
+Free and MIT. Built for founders who ship with Claude Code, Codex, or Cursor and want agents to use their product.
+
+Repo: https://github.com/CH1HU4HU4/clia</div>
+
+      <div class="label">First comment</div>
+      <div class="comment">Site: https://cliaskill.vercel.app
+
+Built for founders who ship with AI and do not want a CLI project.</div>
+
+      <div class="note"><span><b>Flair</b> Self Promotion</span><span><b>Post</b> morning ET</span><span><b>Link</b> body</span></div>
+    </div>
+  </article>
+
+  <article class="post" id="imadethis">
+    <div class="post-num">03</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/IMadeThis</span>
+        <span class="members">~45-60K members</span>
+        <span class="chip fit">Highest acceptance</span>
+      </div>
+      <p class="why">People share things they made. Self-promotion is expected.</p>
+      <p class="voice"><b>Voice</b> Personal, simple, one idea per paragraph.</p>
+
+      <div class="label">Title</div>
+      <div class="title-line">I made a skill that gives your SaaS a command line for AI agents</div>
+
+      <div class="label">Body</div>
+      <div class="copy">I made CLIA because agents can build a SaaS now, but they cannot use one. They need a command to run.
+
+CLIA is a skill for Claude Code, Codex, or Cursor. You tell it what your product does. It builds the commands for you: the main jobs, clean output, no questions that freeze the agent, and a confirmation before anything gets deleted.
+
+You do not need CLI experience. You need a product and a few minutes.
+
+It is free and open source. I want to see if it works on products beyond the demo. Repo in the comments.</div>
+
+      <div class="label">First comment</div>
+      <div class="comment">Repo: https://github.com/CH1HU4HU4/clia
+
+The agent matches your project's language. You do not need to pick one.</div>
+
+      <div class="note"><span><b>Flair</b> none required</span><span><b>Post</b> weekday ET</span><span><b>Link</b> first comment</span></div>
+    </div>
+  </article>
+
+  <article class="post" id="alpha">
+    <div class="post-num">04</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/alphaandbetausers</span>
+        <span class="members">~47-72K members</span>
+        <span class="chip">Testers</span>
+      </div>
+      <p class="why">Founders look for early users and feedback. Ask for a test.</p>
+      <p class="voice"><b>Voice</b> Direct ask. No pitch. Tell them what you need.</p>
+
+      <div class="label">Title</div>
+      <div class="title-line">I need 10 founders with a SaaS product to test a command line for AI agents</div>
+
+      <div class="label">Body</div>
+      <div class="copy">I built CLIA, a skill that gives a SaaS product a command line an AI agent can use. I am looking for 10 founders with a product and an API to try it and tell me where it breaks.
+
+You do not need CLI experience. You tell the agent what your product does. It builds the commands. You run them and see if the output makes sense.
+
+Free, no signup, open source. Reply with what your product does and I will send the steps. If you already have a CLI, I would still like to see it.</div>
+
+      <div class="label">First comment</div>
+      <div class="comment">If you want to look first: https://github.com/CH1HU4HU4/clia
+
+The steps are in the README. Reply with what your product does and I will walk you through it.</div>
+
+      <div class="note"><span><b>Flair</b> required - beta or feedback</span><span><b>Post</b> weekday ET</span><span><b>Link</b> first comment</span></div>
+    </div>
+  </article>
+
+  <article class="post" id="launch">
+    <div class="post-num">05</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/LaunchMyStartup</span>
+        <span class="members">~10K members</span>
+        <span class="chip">Launch</span>
+      </div>
+      <p class="why">Launch announcements and first feedback.</p>
+      <p class="voice"><b>Voice</b> Short launch note. One problem, one promise.</p>
+
+      <div class="label">Title</div>
+      <div class="title-line">Launched CLIA - give your SaaS a command line for AI agents</div>
+
+      <div class="label">Body</div>
+      <div class="copy">AI agents can build a SaaS. They cannot use one unless it has a command they can run.
+
+CLIA is a skill for Claude Code, Codex, or Cursor. It builds a small CLI for your product: the main jobs, clean output, no questions that freeze the agent, and a confirmation before deletes. You do not need to know how to design a CLI.
+
+Free and open source. Built for solo founders who ship with AI and want agents to use their product.
+
+Repo in the comments. Tell me what breaks.</div>
+
+      <div class="label">First comment</div>
+      <div class="comment">Repo: https://github.com/CH1HU4HU4/clia
+Site: https://cliaskill.vercel.app
+
+Start with the README. If the commands do not fit your product, tell me.</div>
+
+      <div class="note"><span><b>Flair</b> launch</span><span><b>Post</b> weekday ET</span><span><b>Link</b> first comment</span></div>
+    </div>
+  </article>
+
+  <article class="post" id="github">
+    <div class="post-num">06</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/github</span>
+        <span class="members">very large</span>
+        <span class="chip warn">Megathread only</span>
+      </div>
+      <p class="why">The weekly self-promotion thread is the only place for a project link.</p>
+      <p class="voice"><b>Voice</b> Megathread comment. Five lines, repo, what it does, what you want.</p>
+
+      <div class="label">Comment copy</div>
+      <div class="comment">CLIA - a skill that gives your SaaS a command line for AI agents
+
+Repo: https://github.com/CH1HU4HU4/clia
+
+Agents are good at running commands and bad at guessing an API. CLIA builds a small CLI for your product: the main jobs, clean output, no questions that stop it when it runs on its own, and a confirmation before deletes. Templates for TypeScript, Go, and Python, plus a check for the common ways an AI-built CLI fails.
+
+Free and MIT. Built for founders who ship with Claude Code, Codex, or Cursor. Feedback welcome.</div>
+
+      <div class="note"><span><b>Where</b> current "Promote your projects here" megathread</span><span><b>Never</b> a standalone post</span></div>
+    </div>
+  </article>
+
+  <article class="post" id="buildinpublic">
+    <div class="post-num">07</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/buildinpublic</span>
+        <span class="members">~30K+ members</span>
+        <span class="chip">Build log</span>
+      </div>
+      <p class="why">People read build logs with specifics.</p>
+      <p class="voice"><b>Voice</b> Build log. What you are making, why, what is next. No fake numbers.</p>
+
+      <div class="label">Title</div>
+      <div class="title-line">Building CLIA in public: giving a SaaS a command line for AI agents</div>
+
+      <div class="label">Body</div>
+      <div class="copy">I am building CLIA, a skill that gives a SaaS product a command line an AI agent can use.
+
+The problem: agents can build a SaaS now. They cannot use one. They need a command, not a screen. Your product has an API. An agent still has to guess how to call it. A small CLI fixes that.
+
+What CLIA does:
+
+- builds the commands that cover your product's main jobs
+- prints clean output an agent can read
+- runs without questions that freeze the agent
+- asks for confirmation before anything gets deleted
+
+It works with the common setups and includes a check for the common ways an AI-built CLI fails. Free and open source.
+
+The next step is to test it on real products and publish what breaks. I will post the results here.</div>
+
+      <div class="label">First comment</div>
+      <div class="comment">Repo: https://github.com/CH1HU4HU4/clia
+
+The demo is in the repo. If you try it, tell me what breaks.</div>
+
+      <div class="note"><span><b>Flair</b> none required</span><span><b>Post</b> weekday ET</span><span><b>Link</b> first comment</span></div>
+    </div>
+  </article>
+
+  <article class="post" id="roast">
+    <div class="post-num">08</div>
+    <div>
+      <div class="subhead">
+        <span class="subname">r/roastmystartup</span>
+        <span class="members">~36K members</span>
+        <span class="chip">Feedback</span>
+      </div>
+      <p class="why">People ask for blunt feedback on positioning.</p>
+      <p class="voice"><b>Voice</b> Self-aware. Ask for the hit. Do not defend.</p>
+
+      <div class="label">Title</div>
+      <div class="title-line">Roast my dev tool: a skill that gives your SaaS a command line for AI agents</div>
+
+      <div class="label">Body</div>
+      <div class="copy">The pitch: agents can build a SaaS now, but they cannot use one. They need a command. CLIA is a skill for Claude Code, Codex, or Cursor that builds a small CLI for your product: the main jobs, clean output, no questions that freeze the agent, and a confirmation before deletes.
+
+Built for solo founders who ship with AI and want agents to use their product.
+
+What I want roasted: the positioning. Is "a command line for AI agents" a real problem you would pay to solve, or a thing only I notice? The tool is free and open source, so I am not selling anything. I want the blunt version.
+
+Repo in the comments if you want to see it.</div>
+
+      <div class="label">First comment</div>
+      <div class="comment">Repo: https://github.com/CH1HU4HU4/clia
+
+The part I am least sure about is the promise. Does "a command line for AI agents" make sense, or does it sound like developer plumbing?</div>
+
+      <div class="note"><span><b>Flair</b> none required</span><span><b>Post</b> weekday ET</span><span><b>Link</b> first comment</span></div>
+    </div>
+  </article>
+
+  <div class="section-head">
+    <h2>Short promo</h2>
+    <span>Use once</span>
+  </div>
+
+  <div class="short">
+    <h3>r/startups_promotion, r/PlugYourProduct, r/MVPLaunch</h3>
+    <p>Pick one of the three. Change the first line so it does not read like a cross-post. Do not post the same text in all three on the same day.</p>
+
+    <div class="label">Title</div>
+    <div class="title-line">CLIA - give your SaaS a command line for AI agents</div>
+
+    <div class="label">Body</div>
+    <div class="copy">CLIA is a free, open source skill for Claude Code, Codex, or Cursor. It builds a small CLI for your SaaS product: the main jobs, clean output an agent can read, no questions that freeze the agent, and a confirmation before deletes.
+
+For solo founders who ship with AI and want agents to use their product.
+
+Repo: https://github.com/CH1HU4HU4/clia</div>
+
+    <div class="note"><span><b>Expect</b> a few clicks, no conversation</span><span><b>Use</b> as a checkbox, not a channel</span></div>
+  </div>
+
+  <div class="section-head">
+    <h2>Do not post</h2>
+    <span>Read this before the first click</span>
+  </div>
+
+  <div class="avoid">
+    <div class="avoid-item"><b>r/opensource</b><span>Bans AI-made and AI-focused projects. CLIA would be removed.</span></div>
+    <div class="avoid-item"><b>r/selfpromotion</b><span>An adult-content creator sub. Wrong room.</span></div>
+    <div class="avoid-item"><b>r/shamelessplug</b><span>Restricted or dead. No reliable audience.</span></div>
+    <div class="avoid-item"><b>r/SaaS</b><span>One mention per 60 days, comments included. Do not spend it on a launch.</span></div>
+    <div class="avoid-item"><b>r/commandline</b><span>CLI fans, not your buyer.</span></div>
+    <div class="avoid-item"><b>r/ProductHunters</b><span>Only if you launch on Product Hunt. Use the launch thread, not a standalone ad.</span></div>
+  </div>
+
+  <div class="section-head">
+    <h2>Posting order</h2>
+    <span>Ten days</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Day</th><th>Sub</th><th>Post</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>r/coolgithubprojects</td><td>Repo-first post. Self Promotion flair.</td></tr>
+      <tr><td>1</td><td>r/IMadeThis</td><td>Personal note.</td></tr>
+      <tr><td>2</td><td>r/SideProject</td><td>The problem and the promise.</td></tr>
+      <tr><td>3</td><td>r/alphaandbetausers</td><td>Tester ask. Flair on.</td></tr>
+      <tr><td>4</td><td>r/github</td><td>One comment in the current megathread.</td></tr>
+      <tr><td>7</td><td>r/buildinpublic</td><td>Build log with the plan.</td></tr>
+      <tr><td>9</td><td>r/roastmystartup</td><td>Positioning roast. Answer every reply.</td></tr>
+      <tr><td>10</td><td>r/startups_promotion or r/PlugYourProduct</td><td>Short promo. One sub, not both.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p><b>Measure</b> repo visits and replies, not upvotes. A post with 40 upvotes and 12 replies beats one with 400 upvotes and none.</p>
+    <p><b>Before posting</b> read the current sticky in each sub. Rules change.</p>
+    <p><b>Source</b> marketing/05-reddit-promo-subs.md and marketing/06-reddit-posts-draft.md.</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLIA launch day - November 18</title>
+<style>
+  :root {
+    --paper: #fbfaf7;
+    --ink: #171614;
+    --muted: #6d675f;
+    --rule: #ddd8cf;
+    --accent: #da552f;
+    --card: #f3f0e9;
+    --code: #f6f2eb;
+    --warn: #9a5b00;
+    --display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141312;
+      --ink: #f2efe8;
+      --muted: #a9a29a;
+      --rule: #35312c;
+      --accent: #ff6b45;
+      --card: #1d1b18;
+      --code: #1a1816;
+      --warn: #e0a35a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 44px 24px 72px; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+  a:hover { border-bottom-color: var(--accent); }
+
+  .kicker { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+  .date-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin: 10px 0 12px; }
+  .date-row h1 { flex: 1 1 auto; min-width: 0; }
+  .count { flex: 0 0 auto; }
+  h1 { font-family: var(--display); font-size: clamp(44px, 9vw, 76px); line-height: 0.96; letter-spacing: -0.035em; font-weight: 600; margin: 0; }
+  .count { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-align: right; padding-bottom: 8px; }
+  .count b { display: block; font-family: var(--display); font-size: 46px; line-height: 0.9; letter-spacing: -0.03em; color: var(--accent); font-weight: 600; }
+  .dek { font-size: 18px; line-height: 1.5; color: var(--muted); max-width: 58ch; margin: 0 0 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 10px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+  .start { border-left: 4px solid var(--accent); padding: 4px 0 4px 20px; margin: 32px 0 8px; }
+  .label { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  .start h2 { font-family: var(--display); font-size: 26px; line-height: 1.15; margin: 0 0 12px; font-weight: 600; letter-spacing: -0.01em; }
+  .start ol { margin: 0; padding-left: 20px; }
+  .start li { margin: 0 0 10px; font-size: 15.5px; line-height: 1.5; }
+  .start li b { font-weight: 600; }
+
+  .callout { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 16px 18px; margin: 18px 0; }
+  .callout p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--muted); }
+  .callout p b { color: var(--ink); font-weight: 600; }
+  .callout .label { color: var(--accent); margin-bottom: 4px; }
+
+  .mini { margin: 0 0 18px; padding: 0; list-style: none; }
+  .mini li { border-top: 1px solid var(--rule); padding: 9px 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
+  .mini li b { color: var(--ink); font-weight: 600; }
+
+  h2 { font-family: var(--display); font-size: 30px; line-height: 1.1; letter-spacing: -0.015em; margin: 48px 0 10px; font-weight: 600; }
+  h3 { font-size: 17px; line-height: 1.3; margin: 24px 0 6px; font-weight: 600; }
+  p { margin: 0 0 12px; }
+  .lead { font-size: 17px; line-height: 1.6; color: var(--muted); }
+  .small { font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+
+  .plain { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin: 14px 0 0; }
+  .plain div { border-top: 1px solid var(--rule); padding-top: 8px; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+  .plain b { display: block; color: var(--ink); font-weight: 600; font-size: 14px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 6px; }
+  th { text-align: left; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; padding: 0 10px 7px 0; border-bottom: 1px solid var(--rule); }
+  td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; font-size: 14px; line-height: 1.45; }
+  td:first-child { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; color: var(--accent); white-space: nowrap; width: 92px; }
+  td:last-child { color: var(--muted); }
+
+  .run { margin: 16px 0 0; border-left: 2px solid var(--rule); padding-left: 18px; }
+  .run-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 14px; padding: 0 0 16px; position: relative; }
+  .run-row::before { content: ""; position: absolute; left: -24px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--paper); border: 2px solid var(--accent); }
+  .run-row .t { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; color: var(--accent); letter-spacing: 0.04em; padding-top: 2px; }
+  .run-row b { font-weight: 600; }
+  .run-row p { margin: 2px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+
+  .channels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 0; }
+  .channel { border: 1px solid var(--rule); border-radius: 6px; padding: 14px 14px 16px; }
+  .channel .n { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.1em; }
+  .channel h3 { margin: 6px 0 4px; font-size: 15px; }
+  .channel p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+
+  details { border-top: 1px solid var(--rule); }
+  details:last-of-type { border-bottom: 1px solid var(--rule); }
+  summary { display: flex; align-items: baseline; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary .n { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px; color: var(--accent); width: 22px; flex: none; }
+  summary .t { font-weight: 600; font-size: 15.5px; flex: 1; }
+  summary .hint { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  summary .plus { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 15px; color: var(--accent); width: 14px; text-align: right; transition: transform 0.15s ease; }
+  details[open] summary .plus { transform: rotate(45deg); }
+  .kit { padding: 0 0 18px 34px; }
+  .kit p { font-size: 13.5px; color: var(--muted); margin: 0 0 8px; }
+  .copy { white-space: pre-wrap; background: var(--code); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; line-height: 1.65; color: var(--ink); }
+  .copy em { color: var(--muted); font-style: normal; }
+
+  .avoid { margin: 14px 0 0; padding: 0; list-style: none; }
+  .avoid li { border-top: 1px solid var(--rule); padding: 10px 0; font-size: 14px; line-height: 1.5; }
+  .avoid li b { font-weight: 600; }
+  .avoid li span { color: var(--muted); }
+
+  .sources { margin: 14px 0 0; padding-left: 20px; }
+  .sources li { margin: 0 0 10px; font-size: 14.5px; line-height: 1.5; }
+  .sources li b { font-weight: 600; }
+
+  .footer { margin-top: 52px; padding-top: 16px; border-top: 2px solid var(--ink); font-size: 14px; line-height: 1.6; color: var(--muted); }
+  .footer b { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .page { padding: 32px 16px 64px; }
+    .plain { grid-template-columns: 1fr; }
+    .channels { grid-template-columns: 1fr; }
+    .date-row { align-items: flex-start; }
+    .count { text-align: left; padding-bottom: 0; }
+    .count b { font-size: 38px; }
+    .run-row { grid-template-columns: 52px minmax(0, 1fr); gap: 10px; }
+    .kit { padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="kicker">CLIA / Product Hunt</div>
+  <div class="date-row">
+    <h1>November 18</h1>
+    <div class="count"><b>5</b> days out</div>
+  </div>
+  <p class="dek">One page for launch day. Five days to get ready. Three channels. One ask.</p>
+  <div class="meta">
+    <span>12:01 AM PST</span>
+    <span>10:01 AM Israel</span>
+    <span>9:01 AM Central Europe</span>
+    <span>Substack + Reddit</span>
+  </div>
+
+  <section class="start">
+    <div class="label">If you only do five things</div>
+    <h2>Start here</h2>
+    <ol>
+      <li><b>Fix the listing description today.</b> It reads like a developer spec. Replace it with the 239-character version in the kit.</li>
+      <li><b>Replace the abstract gallery with real screenshots.</b> The terminal is the demo. People trust what runs.</li>
+      <li><b>Write the first comment.</b> Post it the second the page goes live.</li>
+      <li><b>Send ten personal emails.</b> Ask for a comment, not a vote.</li>
+      <li><b>Reply to every comment on launch day.</b> That is the launch.</li>
+    </ol>
+  </section>
+
+  <div class="callout">
+    <div class="label">Your listing, in three notes</div>
+    <p><b>Keep the tagline.</b> "Give your SaaS a CLI agents can run." is 36 characters, clear, and names the outcome. <b>Fix the description.</b> "Stable --json, exit codes, zero prompts, dry runs, conformance checker" is a spec sheet. Your buyer is a founder who built a product with AI and wants an agent to use it. <b>Replace the abstract gallery art.</b> "PRIME YOUR PRODUCT FOR THE AGENTIC WEB" is a slogan. A real terminal screenshot will do more.</p>
+  </div>
+
+  <ul class="mini">
+    <li><b>Categories</b> AI Agents, Command line tools, Vibe Coding Tools. If the picker makes you choose one parent, choose AI Agents.</li>
+    <li><b>Video</b> 0-5s the problem, 5-15s the product, 15-30s the terminal, 30-40s one agent command, 40-45s the ask.</li>
+    <li><b>Shoutouts</b> Ask three people who tried it for one line. If nobody has tried it, skip. Do not fake it.</li>
+  </ul>
+
+  <h2>What Product Hunt actually is</h2>
+  <p>Product Hunt is a daily leaderboard for new products. The day starts at 12:01 AM Pacific and runs for 24 hours. People browse, upvote, and comment. The top products get a badge and a second wave of traffic.</p>
+  <p>You do not need a hunter. You can launch your own product. Upvotes are disabled until the page goes live. The page you have now is for followers and questions.</p>
+  <p>The badge is nice. The comments are the real value. A launch with 80 upvotes and 20 real conversations beats one with 400 upvotes and silence.</p>
+
+  <div class="plain">
+    <div><b>Upvote</b>The button on the page. Do not ask for it. Product Hunt bans vote campaigns.</div>
+    <div><b>Maker comment</b>Your first comment. It sits at the top. Write it before launch.</div>
+    <div><b>Gallery</b>The images under the tagline. The first one does most of the work.</div>
+    <div><b>Product of the Day</b>The top product for the day. Nice, not the goal.</div>
+    <div><b>Hunter</b>The person who submits the product. You can submit your own.</div>
+    <div><b>Launch day</b>The 24 hours from 12:01 AM Pacific. It is a marathon, not a moment.</div>
+  </div>
+
+  <h2>The five days before</h2>
+  <p class="lead">One job a day. Thirty to ninety minutes. Do not turn this into a second job.</p>
+  <table>
+    <thead><tr><th>Day</th><th>One job</th><th>Time</th></tr></thead>
+    <tbody>
+      <tr><td>Nov 13</td><td>Fix the listing: description, categories, maker profile, links. Leave three real comments on Reddit. No links.</td><td>45 min</td></tr>
+      <tr><td>Nov 14</td><td>Make three gallery images and a 45-second screen recording.</td><td>90 min</td></tr>
+      <tr><td>Nov 15</td><td>Test as a stranger: private window, fresh email, follow the README. Fix the first blocker.</td><td>60 min</td></tr>
+      <tr><td>Nov 16</td><td>Write the first comment, the Substack post, the Substack Note, and the ten-person email.</td><td>45 min</td></tr>
+      <tr><td>Nov 17</td><td>Send the ten emails. Start one Product Hunt forum thread. Final link check. Sleep.</td><td>45 min</td></tr>
+      <tr><td>Nov 18</td><td>Launch. Reply to comments. Do not ask for votes.</td><td>Day</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Launch day, hour by hour</h2>
+  <p class="lead">Times run from 12:01 AM Pacific. If that is the middle of your night, post the first comment at launch, sleep four hours, then do the real push. The page runs for 24 hours.</p>
+  <div class="run">
+    <div class="run-row"><div class="t">T-30</div><div><b>Open everything.</b><p>Listing, repo, site, terminal. Click every link. Keep the first comment in a notes app so you can paste it fast.</p></div></div>
+    <div class="run-row"><div class="t">T+0</div><div><b>Refresh. The page is live.</b><p>Post the first comment. Check that it appears. Do not edit the listing.</p></div></div>
+    <div class="run-row"><div class="t">T+5</div><div><b>Post on Substack and send ten emails.</b><p>Publish the Substack post. Post the short Note. Send the ten personal emails. Ask for a comment, not a vote.</p></div></div>
+    <div class="run-row"><div class="t">T+30</div><div><b>Post in one community.</b><p>Use the r/SideProject post from u/omerfeinholtz. Put the link in the first comment. If the post is removed, do not repost.</p></div></div>
+    <div class="run-row"><div class="t">T+1</div><div><b>Reply to every comment.</b><p>Short, specific, human. If someone asks a question, answer it. If someone tries it, thank them and ask what broke.</p></div></div>
+    <div class="run-row"><div class="t">T+2</div><div><b>Post one real update on Substack Notes.</b><p>Share a question you got twice, or a fix you shipped from a comment. No rank talk.</p></div></div>
+    <div class="run-row"><div class="t">T+4</div><div><b>Second reply pass.</b><p>Check the rank once. Do not refresh every five minutes. Reply to the new comments.</p></div></div>
+    <div class="run-row"><div class="t">T+8</div><div><b>Third reply pass.</b><p>Thank the people who shared it. Answer the questions that came in while you were away.</p></div></div>
+    <div class="run-row"><div class="t">T+12</div><div><b>Evening check.</b><p>Reply to the last comments. Post a short thank-you on Substack Notes. Do not disappear.</p></div></div>
+    <div class="run-row"><div class="t">T+24</div><div><b>It is over.</b><p>Post a thank-you comment on the page. Send a recap to the people who helped. Post a short recap on Substack. Save the questions for next week.</p></div></div>
+  </div>
+
+  <h2>Three channels. Do not add a fourth.</h2>
+  <div class="channels">
+    <div class="channel"><div class="n">01</div><h3>Product Hunt</h3><p>The page, the first comment, and replies. This is the main event.</p></div>
+    <div class="channel"><div class="n">02</div><h3>Substack</h3><p>One post, a few Notes, and ten personal emails. Ask for a comment or a try.</p></div>
+    <div class="channel"><div class="n">03</div><h3>Reddit</h3><p>u/omerfeinholtz in r/SideProject on launch day. r/ClaudeCode later. One at a time.</p></div>
+  </div>
+
+  <h2>Where the ten people come from</h2>
+  <p class="lead">Do not buy a list. Find ten people who already have a reason to care.</p>
+  <ol class="sources">
+    <li><b>Your Substack.</b> Three people who replied, liked, or wrote back. They opted in.</li>
+    <li><b>Your Reddit history.</b> Three people who asked about CLIs, MCP, or agent access in r/SideProject, r/ClaudeCode, or r/microsaas. Reply in the thread, or DM if they invited it.</li>
+    <li><b>Your past.</b> Four founders or builders you actually know. Former colleagues, clients, friends with a SaaS.</li>
+    <li><b>Your repo.</b> People who starred it, opened an issue, or asked a question. Use GitHub, not email, if you do not have an address.</li>
+  </ol>
+  <p class="small">Thirty minutes: five on Substack, ten on Reddit, ten on your contacts, five on GitHub. Only email people who opted in or know you. For everyone else, reply where they posted. If you cannot find ten, send five. A short list with real context beats a blast.</p>
+
+  <h2>The copy-paste kit</h2>
+  <p class="lead">Open only what you need. Replace the bracketed links before you paste.</p>
+
+  <details>
+    <summary><span class="n">01</span><span class="t">Product Hunt description</span><span class="hint">239 chars</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>Replace the current description. This fits the 260-character limit and uses plain words.</p>
+      <div class="copy">Your SaaS has a screen. Your AI agent needs a command. CLIA builds a small CLI from your product: the main jobs, clean output, no questions, and a check before deletes. For founders who build with AI, not CLI experts. Free and open source.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">02</span><span class="t">First comment</span><span class="hint">Post at launch</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>Post this the second the page goes live. It is the first thing people read. No vote ask.</p>
+      <div class="copy">Hi Product Hunt. I built CLIA for one reason: an AI agent can build a SaaS now, but it cannot use one. It needs a command, not a screen.
+
+CLIA is a skill for Claude Code, Codex, or OpenCode. You point it at your product. It builds the commands that cover the main jobs, prints clean output an agent can read, and asks before it deletes anything. You do not need to know how to design a CLI.
+
+It is free and open source. The repo and the site are below.
+
+I would love one thing from you: if you have a SaaS, what is the first job you would want an agent to do in it? I will reply to every comment.
+
+Repo: https://github.com/CH1HU4HU4/clia
+Site: https://cliaskill.vercel.app</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">03</span><span class="t">Substack post</span><span class="hint">Publish at T+5</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>Publish this on omerfeinholtz.substack.com. It goes to your subscribers and stays on the web.</p>
+      <div class="copy">Title: Give your SaaS a command line for AI agents
+
+I built CLIA for one reason: an AI agent can build a SaaS now, but it cannot use one. It needs a command, not a screen.
+
+CLIA is a skill for Claude Code, Codex, or OpenCode. You point it at your product. It builds the commands that cover the main jobs, prints clean output an agent can read, and asks before it deletes anything. You do not need to know how to design a CLI.
+
+It is free and open source. I am launching it on Product Hunt today. If you have a SaaS, what is the first job you would want an agent to do in it?
+
+[PH link]
+https://github.com/CH1HU4HU4/clia</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">04</span><span class="t">Substack Note</span><span class="hint">Post at T+5</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>One short Note. Pin it if your Substack has that option.</p>
+      <div class="copy">Your SaaS has a screen. Your AI agent needs a command.
+
+CLIA builds a small CLI from your product: the main jobs, clean output, no questions, and a check before deletes.
+
+Free and open source. On Product Hunt today:
+[PH link]</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">05</span><span class="t">Ten-person email</span><span class="hint">Send at T+5</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>Send this to ten people you actually know. Change the first line. Do not send it to a list.</p>
+      <div class="copy">Subject: CLIA is live on Product Hunt today
+
+Hey [name],
+
+I am launching CLIA on Product Hunt today. It gives a SaaS a command line an AI agent can use.
+
+No ask for a vote. If you have five minutes, try it and leave a comment with one question. That is the part that helps most.
+
+[PH link]
+
+If you want to see it first: https://github.com/CH1HU4HU4/clia</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">06</span><span class="t">r/SideProject post</span><span class="hint">Launch day</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>Post from u/omerfeinholtz. Put the link in the first comment, not the body. If the post is removed, do not repost.</p>
+      <div class="copy">Title: I built a skill that gives your SaaS a command line for AI agents
+
+Founders can build a SaaS with Claude Code now. The part that still takes work is letting an agent use the product after it ships.
+
+Agents are good at running commands. They are bad at guessing how your app works. A small command line fixes that. It gives the agent a few clear commands, like `customers list` or `invoice create`, instead of a screen it cannot see.
+
+CLIA is a skill for Claude Code, Codex, or OpenCode. You point it at your product and it builds those commands for you: the main jobs, clean output the agent can read, no questions that freeze it, and a confirmation before anything gets deleted.
+
+You do not need to know how to design a CLI. You need to know what your product does.
+
+It is free and open source. I am launching it on Product Hunt today. If you try it, tell me what breaks. Link in the comments.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">07</span><span class="t">r/ClaudeCode post</span><span class="hint">Later in the week</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>This one is for builders. Post it from u/omerfeinholtz after launch, not on the same day. No Product Hunt link.</p>
+      <div class="copy">Title: I built a skill that gives your SaaS a command line for agents
+
+The part that still takes work is letting an agent use the product after it ships.
+
+CLIA is a skill that builds the command line for you. You point it at your product. It builds the commands that cover the main jobs, prints clean output, and asks before it deletes anything. You do not need to design a CLI.
+
+It is free and open source. I want to know what it gets wrong on a real product. Repo in the comments.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">08</span><span class="t">Reply scripts</span><span class="hint">For comments</span><span class="plus">+</span></summary>
+    <div class="kit">
+      <p>Answer the question, then stop. Do not pitch again.</p>
+      <div class="copy">"What is this?"
+A skill that builds a small command line for your SaaS, so an AI agent can run the main jobs without guessing your app. You point it at your product. It builds the commands. Free and open source.
+
+"How is this different from MCP?"
+MCP is a way to give an agent tools. CLIA builds the command line itself. A command is easy to run, test, and put in a pipeline. Use MCP if you want a hosted tool server. Use CLIA if you want a command your agent can run anywhere.
+
+"Why not just use the API?"
+An agent can call an API, but it has to guess the endpoints, the login, and the shape of the response. A CLI gives it a few clear commands and clean output. Fewer failures, less context.
+
+"Does it work with my stack?"
+It matches the language of your project. There are templates for TypeScript, Go, and Python. If your stack is different, tell me and I will look.
+
+"Is it free?"
+Yes. Free and open source. No signup.
+
+"Is this just a prompt?"
+It is a skill with templates and a check. The check is the part that catches the failures a prompt misses. Try it on your product and tell me what it gets wrong.
+
+"I tried it. Here is what broke."
+Thank you. That is the useful part. Can you paste the command and the output? I will fix it or add it to the list.</div>
+    </div>
+  </details>
+
+  <h2>The numbers</h2>
+  <p class="lead">A good first launch is not Product of the Day. It is ten conversations and five people who try the thing.</p>
+  <table>
+    <thead><tr><th>Metric</th><th>A sane target</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Upvotes</td><td>75-150</td><td>Enough to stay visible. Not the goal.</td></tr>
+      <tr><td>Comments</td><td>15-30</td><td>The real signal. Each one is a person.</td></tr>
+      <tr><td>Rank</td><td>Top 10 in your categories</td><td>Product of the Day is a lottery.</td></tr>
+      <tr><td>Site visits</td><td>50-150</td><td>Traffic, not vanity.</td></tr>
+      <tr><td>Repo stars</td><td>10-25</td><td>Developers who care enough to look.</td></tr>
+      <tr><td>Real conversations</td><td>5-10</td><td>The only number that compounds.</td></tr>
+      <tr><td>People who try it</td><td>3-5</td><td>Proof it works outside your machine.</td></tr>
+    </tbody>
+  </table>
+  <p class="small">These are not failure lines. They are a target for a first launch with a small network. If you beat them, good. If you do not, you still have the comments.</p>
+
+  <h2>Do not do</h2>
+  <ul class="avoid">
+    <li><b>Do not ask for upvotes.</b> <span>Product Hunt bans vote campaigns. Ask for a comment or a try.</span></li>
+    <li><b>Do not buy votes or join vote pods.</b> <span>Product Hunt removes votes it does not trust.</span></li>
+    <li><b>Do not send 100 emails.</b> <span>Ten personal emails beat a blast.</span></li>
+    <li><b>Do not post in eight subreddits.</b> <span>One community on launch day. One later.</span></li>
+    <li><b>Do not post from a cold Reddit account.</b> <span>Use u/omerfeinholtz. Leave three real comments before launch day.</span></li>
+    <li><b>Do not argue with a negative comment.</b> <span>Answer once, plainly, then move on.</span></li>
+    <li><b>Do not edit the listing all day.</b> <span>Fix a typo. Leave the rest.</span></li>
+    <li><b>Do not disappear after two hours.</b> <span>The comments are the launch.</span></li>
+    <li><b>Do not measure the day by rank.</b> <span>Measure the conversations.</span></li>
+  </ul>
+
+  <h2>The week after</h2>
+  <table>
+    <thead><tr><th>Day</th><th>Action</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Nov 19</td><td>Thank every commenter. Send the three follow-ups. Post a recap on Substack. Add the Product Hunt badge to the site.</td><td>Close the loop while people remember.</td></tr>
+      <tr><td>Nov 20</td><td>Post the r/ClaudeCode piece. Turn the best question into an FAQ on the landing page.</td><td>Reach the builders after the launch noise.</td></tr>
+      <tr><td>Nov 21-22</td><td>Follow up with the people who tried it. Ship one fix from the feedback.</td><td>Show the launch changed the product.</td></tr>
+      <tr><td>Nov 23-25</td><td>Write a short "what I learned" post on Substack. Update the landing page with the best comments.</td><td>Turn one day into a month of content.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p><b>If you do nothing else:</b> fix the description, make three real screenshots, write the first comment, send ten emails, and reply to every comment.</p>
+    <p><b>The one ask:</b> "Try it and leave a comment with one question." Not "upvote."</p>
+    <p><b>Source:</b> Product Hunt launch dashboard, Nov 13 2026. Launch scheduled for Nov 18, 12:01 AM PST.</p>
+  </div>
+
+</div>
+</body>
+</html>
