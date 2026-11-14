@@ -561,6 +561,28 @@ h1 {
   color: var(--white);
 }
 
+.footer-badge {
+  display: flex;
+  justify-content: center;
+}
+
+.ph-badge {
+  display: inline-flex;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.ph-badge:hover {
+  opacity: 1;
+}
+
+.ph-badge img {
+  display: block;
+  width: 250px;
+  height: 54px;
+}
+
 
 .sr-only {
   position: absolute;
@@ -808,8 +830,8 @@ h1 {
   }
 
   .footer-inner {
-    flex-wrap: wrap;
-    gap: 16px 24px;
+    flex-direction: column;
+    gap: 16px;
   }
 
 }
